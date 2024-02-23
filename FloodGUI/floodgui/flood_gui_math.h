@@ -1,7 +1,19 @@
 #pragma once
 #include <cstdint>
 
+class FloodVector4 {
+public:
+	float x, y, z, w;
+
+	FloodVector4() : x{ 0 }, y{ 0 }, z{ 0 }, w{0}{ }
+	FloodVector4(float x, float y, float z, float w) { this->x = x; this->y = y; this->z = z; this->w = w; }
+	// Todo:
+	// Should add more math functions
+};
+
+
 class FloodVector3 {
+public:
 	float x, y, z;
 
 	FloodVector3() : x{ 0 }, y{ 0 }, z{ 0 }{ }

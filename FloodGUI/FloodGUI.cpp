@@ -127,9 +127,11 @@ int main()
 
 		FloodGui::NewFrame();
 		{
-			
+			FloodGui::BeginWindow("Window1");
 
 
+
+			FloodGui::EndWindow();
 		}
 		FloodGui::EndFrame();
 

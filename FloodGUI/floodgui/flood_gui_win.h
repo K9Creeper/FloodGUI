@@ -10,6 +10,9 @@ struct FloodGuiWinData
 {
 	HWND hwnd;
 
+	FloodGuiWinData() {
+		memset((void*)this, 0, sizeof(*this));
+	}
 };
 
 bool FloodGuiWinInit(HWND hwnd) {

@@ -42,21 +42,77 @@ public:
 	FloodDrawData(){}
 	FloodDrawData(FloodDisplay* display) { this->Display = display;  }
 	FloodDisplay* Display = nullptr; // From FloodGui::Context
+
+	std::vector<FloodDrawList*>DrawLists{};
+
+	unsigned int GetVertexCount() const;
+
+	unsigned int GetIndexCount() const;
+
 	bool isMinimized();
 };
 
-struct FloodDrawList {
-private:
-	std::vector<FloodVector2> Paths{}; //
-	void  PathLineTo(const FloodVector2& p) { Paths.push_back(p); }
-	void  PathRect(const FloodVector2& a, const FloodVector2& b);
+struct FloodDrawMaterial {
+	std::vector<FloodVector2>Points{};
+	bool shouldFill = false;
+	FloodColor col;
+	float thinkness;
 
-	void  AddPoly(const std::vector<FloodVector2> points, FloodColor col, float thickness);
-	void  AddPolyFilled(const std::vector<FloodVector2> points, FloodColor col);
+	int index_count; 
+	int vertex_count; // equal to points size
+};
+
+typedef unsigned short FloodDrawIndex;
+struct FloodDrawVertex {
+	FloodVector2 position;
+	FloodVector2 uv;
+
+	unsigned int col = 0x00000000;
+};
+
+struct FloodDrawList {
 public:
-	void  AddLine(const FloodVector2& p1, const FloodVector2& p2, FloodColor col, float thickness = 1.0f);
-    void  AddRect(const FloodVector2& min, const FloodVector2& max, FloodColor col, float thickness = 1.0f);
-    void  AddRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col);
+	std::vector< FloodDrawMaterial >Elements{};
+
+	std::vector< FloodDrawVertex > VertexBuffer;
+	std::vector< FloodDrawIndex > IndexBuffer;
+
+	FloodDrawIndex* IndexWrite;
+	FloodDrawVertex* VertexWrite;
+
+	unsigned int VertexCurrentIdx = 0;
+
+	int GetElementCount() const {
+		int ttl = 0;
+		for (const FloodDrawMaterial& mat : Elements)
+			ttl += mat.Points.size();
+		return ttl;
+	}
+
+	int GetVertexCount() const {
+		return VertexBuffer.size();
+	}
+
+	int GetIndexCount() const {
+		return IndexBuffer.size();
+	}
+
+	void AddLine(const FloodVector2& p1, const FloodVector2& p2, FloodColor col, float thickness = 1.f);
+	void AddRect(const FloodVector2& min, const FloodVector2& max, FloodColor col, float thickness = 1.f);
+	void AddRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col);
+
+	void Clear()
+	{
+		IndexWrite = nullptr;
+		VertexWrite = nullptr;
+		VertexBuffer.clear();
+		IndexBuffer.clear();
+		Elements.clear();
+		VertexCurrentIdx = 0;
+	}
+private:
+	void AllocRect(const FloodVector2& min, const FloodVector2& max, FloodColor col);
+	void ReserveGeo(const int& index_count, const int& vertex_count);
 };
 
 class FloodWindow {
@@ -67,7 +123,6 @@ private:
 
 	uint16_t zIndex = 0; // 0 - top layer, 1,2,3.. are behind this index
 
-	bool isRendering = false;
 public:
 	FloodWindow(FloodVector2 size, FloodVector2 position = FloodVector2(0,0)) {
 		this->size = size;

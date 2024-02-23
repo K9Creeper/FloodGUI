@@ -193,3 +193,12 @@ namespace FloodGui {
 
     }
 }
+
+constexpr unsigned int ColorToUint32(const FloodColor& color)
+{
+    return
+        ((BYTE(color.a) << 24) +
+            (BYTE(color.r) << 16) +
+            (BYTE(color.g) << 8) +
+            BYTE(color.b));
+}
