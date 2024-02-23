@@ -1,11 +1,13 @@
 // THIS FILE IS ONLY USED FOR TESTING...
 // THIS FILE IS NOT APART OF FloodGUI
-// FLOOD GUI IS LOCATED IN THE FloodGUI FOLDER
+// Flood GUI IS LOCATED IN THE FloodGUI FOLDER
 #include <iostream>
 #include <Windows.h>
 
 #include "floodgui/flood_gui.h"
 #include "floodgui/flood_gui_win.h"
+
+FloodColor clearColor(0.45f, 0.55f, 0.60f, 1.f);
 
 LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
 LPDIRECT3DDEVICE9 d3ddev;
@@ -18,19 +20,21 @@ extern LRESULT CALLBACK FloodGuiWindowWinProcHandler(HWND hwnd, UINT message, WP
 
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	if (FloodGuiWindowWinProcHandler(hwnd, message, wParam, lParam))
+		return TRUE;
+
 	switch (message)
 	{
 	case WM_PAINT:
-		
+
+
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
 		break;
 	}
-	// This is where we will put our FloodGui WindowProc
-	if (FloodGuiWindowWinProcHandler(hwnd, message, wParam, lParam))
-		return TRUE;
+	
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
@@ -58,10 +62,10 @@ int main()
 		500, 500,
 		NULL,
 		NULL,
-		nullptr,
+		wc.hInstance,
 		NULL);
 
-	std::cout << "Created Window\n";
+	std::cout << "Created Window - "<< overlay << "\n";
 	std::cout << "Set Atrbiutes\n";
 	ShowWindow(overlay, SW_SHOWDEFAULT);
 	std::cout << "Showing window\n";
@@ -89,6 +93,12 @@ int main()
 		&d3ddev);
 	std::cout << "Created Device\n";
 
+	FloodGuiWinInit(overlay);
+	FloodGuiD3D9Init(d3ddev);
+	
+	FloodGui::Context.DrawData = new FloodDrawData(&FloodGui::Context.Display);
+
+	std::cout << "Initalized Flood\n";
 	while (running) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
@@ -108,6 +118,42 @@ int main()
 				running = false;
 			}
 		}
+		if (!running)
+			break;
+		// We render down here
+		//
+		FloodGuiWinNewFrame();
+		FloodGuiD3D9NewFrame();
+
+		FloodGui::NewFrame();
+		{
+			
+
+
+		}
+		FloodGui::EndFrame();
+
+		d3ddev->SetRenderState(D3DRS_ZENABLE, FALSE);
+		d3ddev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+		d3ddev->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+		D3DCOLOR clear_col_dx = D3DCOLOR_RGBA((int)(clearColor.r * clearColor.a), (int)(clearColor.g * clearColor.a), (int)(clearColor.b * clearColor.a), (int)(clearColor.a));
+		d3ddev->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0);
+		if (d3ddev->BeginScene() >= 0)
+		{
+			FloodGui::Render();
+			FloodGuiD3D9RenderDrawData(FloodGui::Context.DrawData);
+			d3ddev->EndScene();
+		}
+		HRESULT result = d3ddev->Present(nullptr, nullptr, nullptr, nullptr);
 	}
+
+	FloodGuiD3D9Shutdown();
+	FloodGuiWinShutdown();
+
+	std::cout << "Uninitalized Flood\n";
+
+	DestroyWindow(overlay);
+	UnregisterClassW(wc.lpszClassName, wc.hInstance);
+	std::cout << "Destroyed Window\n";
 	return -1;
 }

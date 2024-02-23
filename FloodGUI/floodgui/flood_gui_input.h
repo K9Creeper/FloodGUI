@@ -1,108 +1,11 @@
 #pragma once
-
 #include <Windows.h>
-#include <chrono>
+
 #include <cstdint>
-#include <vector>
 
 #include "flood_gui.h"
 #include "flood_gui_math.h"
 
-enum FloodKey : uint16_t {
-    FloodGuiKey_None = 0,
-    FloodGuiKey_Tab = 512,             // == FloodGuiKey_NamedKey_BEGIN
-    FloodGuiKey_LeftArrow,
-    FloodGuiKey_RightArrow,
-    FloodGuiKey_UpArrow,
-    FloodGuiKey_DownArrow,
-    FloodGuiKey_PageUp,
-    FloodGuiKey_PageDown,
-    FloodGuiKey_Home,
-    FloodGuiKey_End,
-    FloodGuiKey_Insert,
-    FloodGuiKey_Delete,
-    FloodGuiKey_Backspace,
-    FloodGuiKey_Space,
-    FloodGuiKey_Enter,
-    FloodGuiKey_Escape,
-    FloodGuiKey_LeftCtrl, FloodGuiKey_LeftShift, FloodGuiKey_LeftAlt, FloodGuiKey_LeftSuper,
-    FloodGuiKey_RightCtrl, FloodGuiKey_RightShift, FloodGuiKey_RightAlt, FloodGuiKey_RightSuper,
-    FloodGuiKey_Menu,
-    FloodGuiKey_0, FloodGuiKey_1, FloodGuiKey_2, FloodGuiKey_3, FloodGuiKey_4, FloodGuiKey_5, FloodGuiKey_6, FloodGuiKey_7, FloodGuiKey_8, FloodGuiKey_9,
-    FloodGuiKey_A, FloodGuiKey_B, FloodGuiKey_C, FloodGuiKey_D, FloodGuiKey_E, FloodGuiKey_F, FloodGuiKey_G, FloodGuiKey_H, FloodGuiKey_I, FloodGuiKey_J,
-    FloodGuiKey_K, FloodGuiKey_L, FloodGuiKey_M, FloodGuiKey_N, FloodGuiKey_O, FloodGuiKey_P, FloodGuiKey_Q, FloodGuiKey_R, FloodGuiKey_S, FloodGuiKey_T,
-    FloodGuiKey_U, FloodGuiKey_V, FloodGuiKey_W, FloodGuiKey_X, FloodGuiKey_Y, FloodGuiKey_Z,
-    FloodGuiKey_F1, FloodGuiKey_F2, FloodGuiKey_F3, FloodGuiKey_F4, FloodGuiKey_F5, FloodGuiKey_F6,
-    FloodGuiKey_F7, FloodGuiKey_F8, FloodGuiKey_F9, FloodGuiKey_F10, FloodGuiKey_F11, FloodGuiKey_F12,
-    FloodGuiKey_Apostrophe,        // '
-    FloodGuiKey_Comma,             // ,
-    FloodGuiKey_Minus,             // -
-    FloodGuiKey_Period,            // .
-    FloodGuiKey_Slash,             // /
-    FloodGuiKey_Semicolon,         // ;
-    FloodGuiKey_Equal,             // =
-    FloodGuiKey_LeftBracket,       // [
-    FloodGuiKey_Backslash,         // \ (this text inhibit multiline comment caused by backslash)
-    FloodGuiKey_RightBracket,      // ]
-    FloodGuiKey_GraveAccent,       // `
-    FloodGuiKey_CapsLock,
-    FloodGuiKey_ScrollLock,
-    FloodGuiKey_NumLock,
-    FloodGuiKey_PrintScreen,
-    FloodGuiKey_Pause,
-    FloodGuiKey_Keypad0, FloodGuiKey_Keypad1, FloodGuiKey_Keypad2, FloodGuiKey_Keypad3, FloodGuiKey_Keypad4,
-    FloodGuiKey_Keypad5, FloodGuiKey_Keypad6, FloodGuiKey_Keypad7, FloodGuiKey_Keypad8, FloodGuiKey_Keypad9,
-    FloodGuiKey_KeypadDecimal,
-    FloodGuiKey_KeypadDivide,
-    FloodGuiKey_KeypadMultiply,
-    FloodGuiKey_KeypadSubtract,
-    FloodGuiKey_KeypadAdd,
-    FloodGuiKey_KeypadEnter,
-    FloodGuiKey_KeypadEqual,
-
-    FloodGuiKey_GamepadStart,          // Menu (Xbox)      + (Switch)   Start/Options (PS)
-    FloodGuiKey_GamepadBack,           // View (Xbox)      - (Switch)   Share (PS)
-    FloodGuiKey_GamepadFaceLeft,       // X (Xbox)         Y (Switch)   Square (PS)        // Tap: Toggle Menu. Hold: Windowing mode (Focus/Move/Resize windows)
-    FloodGuiKey_GamepadFaceRight,      // B (Xbox)         A (Switch)   Circle (PS)        // Cancel / Close / Exit
-    FloodGuiKey_GamepadFaceUp,         // Y (Xbox)         X (Switch)   Triangle (PS)      // Text Input / On-screen Keyboard
-    FloodGuiKey_GamepadFaceDown,       // A (Xbox)         B (Switch)   Cross (PS)         // Activate / Open / Toggle / Tweak
-    FloodGuiKey_GamepadDpadLeft,       // D-pad Left                                       // Move / Tweak / Resize Window (in Windowing mode)
-    FloodGuiKey_GamepadDpadRight,      // D-pad Right                                      // Move / Tweak / Resize Window (in Windowing mode)
-    FloodGuiKey_GamepadDpadUp,         // D-pad Up                                         // Move / Tweak / Resize Window (in Windowing mode)
-    FloodGuiKey_GamepadDpadDown,       // D-pad Down                                       // Move / Tweak / Resize Window (in Windowing mode)
-    FloodGuiKey_GamepadL1,             // L Bumper (Xbox)  L (Switch)   L1 (PS)            // Tweak Slower / Focus Previous (in Windowing mode)
-    FloodGuiKey_GamepadR1,             // R Bumper (Xbox)  R (Switch)   R1 (PS)            // Tweak Faster / Focus Next (in Windowing mode)
-    FloodGuiKey_GamepadL2,             // L Trig. (Xbox)   ZL (Switch)  L2 (PS) [Analog]
-    FloodGuiKey_GamepadR2,             // R Trig. (Xbox)   ZR (Switch)  R2 (PS) [Analog]
-    FloodGuiKey_GamepadL3,             // L Stick (Xbox)   L3 (Switch)  L3 (PS)
-    FloodGuiKey_GamepadR3,             // R Stick (Xbox)   R3 (Switch)  R3 (PS)
-    FloodGuiKey_GamepadLStickLeft,     // [Analog]                                         // Move Window (in Windowing mode)
-    FloodGuiKey_GamepadLStickRight,    // [Analog]                                         // Move Window (in Windowing mode)
-    FloodGuiKey_GamepadLStickUp,       // [Analog]                                         // Move Window (in Windowing mode)
-    FloodGuiKey_GamepadLStickDown,     // [Analog]                                         // Move Window (in Windowing mode)
-    FloodGuiKey_GamepadRStickLeft,     // [Analog]
-    FloodGuiKey_GamepadRStickRight,    // [Analog]
-    FloodGuiKey_GamepadRStickUp,       // [Analog]
-    FloodGuiKey_GamepadRStickDown,     // [Analog]
-
-    FloodGuiKey_MouseLeft, FloodGuiKey_MouseRight, FloodGuiKey_MouseMiddle, FloodGuiKey_MouseX1, FloodGuiKey_MouseX2, FloodGuiKey_MouseWheelX, FloodGuiKey_MouseWheelY,
-
-    FloodGuiKey_ReservedForModCtrl, FloodGuiKey_ReservedForModShift, FloodGuiKey_ReservedForModAlt, FloodGuiKey_ReservedForModSuper,
-    FloodGuiKey_COUNT,
-
-
-    FloodGuiMod_None = 0,
-    FloodGuiMod_Ctrl = 1 << 12,
-    FloodGuiMod_Shift = 1 << 13,
-    FloodGuiMod_Alt = 1 << 14,
-    FloodGuiMod_Super = 1 << 15, 
-    FloodGuiMod_Shortcut = 1 << 11,
-    FloodGuiMod_Mask_ = 0xF800, 
-
-    FloodGuiKey_NamedKey_BEGIN = 512,
-    FloodGuiKey_NamedKey_END = FloodGuiKey_COUNT,
-    FloodGuiKey_NamedKey_COUNT = FloodGuiKey_NamedKey_END - FloodGuiKey_NamedKey_BEGIN,
-};
 constexpr uint16_t WindowsInputs[] = { VK_TAB, VK_LEFT, VK_RIGHT,  VK_UP,  VK_DOWN, VK_PRIOR,  VK_NEXT,
  VK_HOME, VK_END,  VK_INSERT, VK_DELETE,  VK_BACK,  VK_SPACE,  VK_RETURN,  VK_OEM_7, VK_OEM_COMMA,
  VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_2,  VK_OEM_1, VK_OEM_PLUS,  VK_OEM_4, VK_OEM_5, VK_OEM_6, VK_CAPITAL,  VK_SCROLL,
@@ -149,16 +52,40 @@ constexpr FloodKey FloodGuiWinVirtualKeyToFloodGuiKey(WPARAM wParam)
     case VK_F11: return FloodGuiKey_F11; case VK_F12: return FloodGuiKey_F12; default: return FloodGuiKey_None;
     }
 }
-struct FloodKeyInput {
-    FloodKey key;
-    std::chrono::milliseconds time{}; // of last click
-    std::chrono::milliseconds ms{}; // since last clicked
-    uint32_t count = 0; // times pressed
-};
-struct FloodIO {
-    FLOODVector2 mouse_pos;
-    void AddMouseMoveEvent(FLOODVector2 mouse_pos);
 
-    std::vector< FloodKeyInput > KeyboardInputs{};
-    void AddKeyEvent(FloodKey key, bool down);
-};
+void FloodIO::AddKeyEventDown(FloodKey key)
+{
+    if (FloodGui::Context.FrameStage != FloodRenderStage_FrameRenderEnd)
+        return;
+    const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+        );
+    bool exists = KeyboardInputs.find(key) != KeyboardInputs.end();
+
+    if (!exists)
+        KeyboardInputs[key] = FloodKeyInput{ now };
+
+    const double ms = abs(KeyboardInputs[key].time.count() - now.count());
+    FloodKeyInput& input = KeyboardInputs[key];
+    if (input.count < 2 && KeyRepeatDelay <= ms) {
+        input.ms = abs(input.time - now);
+        input.time = now;
+        input.count++;
+    }
+    else if (!((KeyRepeatRate - 5.f) >= ms && (KeyRepeatRate + 5.f) <= ms) && (KeyRepeatDelay) <= ms) {
+        input.ms = abs(input.time - now);
+        input.time = now;
+        input.count = 1;
+    }
+}
+
+void FloodIO::AddMouseMoveEvent(FloodVector2 mouse_pos)
+{
+    // Wow, its that easy
+    mouse_pos = mouse_pos;
+}
+void FloodIO::AddMouseClickEvent(FloodMouseButton button, bool button_down) {
+    if (FloodGui::Context.FrameStage != FloodRenderStage_FrameRenderEnd)
+        return;
+    MouseInput[button] = button_down;
+}
