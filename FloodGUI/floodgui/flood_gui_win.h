@@ -47,6 +47,7 @@ void FloodGuiWinShutdown()
 
 	delete backend_data;
 }
+
 LRESULT CALLBACK FloodGuiWindowWinProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)

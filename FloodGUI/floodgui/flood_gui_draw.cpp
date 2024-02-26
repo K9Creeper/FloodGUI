@@ -5,17 +5,12 @@
 #include <algorithm>
 #include <iostream>
 
-#include "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Include/d3dx9.h"
-#pragma comment(lib, "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Lib/x64/d3dx9.lib")
-
 
 struct FloodGuiD3D9Data
 {
     LPDIRECT3DDEVICE9           pd3dDevice;
     LPDIRECT3DVERTEXBUFFER9     pVB;
     LPDIRECT3DINDEXBUFFER9      pIB;
-
-    LPDIRECT3DTEXTURE9          FontTexture;
 
     int                         VertexBufferSize;
     int                         IndexBufferSize;
@@ -34,6 +29,10 @@ struct CUSTOMVERTEX
     float    uv[2];
 };
 
+
+//                  //
+// HELPER FUNCTIONS //
+//                  //
 std::vector<std::pair<const char*, FloodWindow*>>SortWindows() {
     std::vector<std::pair<const char*, FloodWindow*>>out;
     out.reserve(FloodGui::Context.Windows.size());
@@ -63,38 +62,64 @@ std::vector<std::pair<const char*, FloodWindow*>>SortWindows() {
     return out;
 }
 
-constexpr bool FindPoint(const FloodVector2& min, const FloodVector2& max, const FloodVector2& point)
-{
-    return (point.x > min.x && point.x < max.x&& point.y > min.y && point.y < max.y);
-}
-
 FloodWindow* get_window_hovering()
 {
     FloodWindow* interest = nullptr;
     const FloodVector2& mouse_pos = FloodGui::Context.IO.mouse_pos;
+    // Here we are looping through all windows
     for (const auto& [name, window] : FloodGui::Context.Windows)
     {
+        // We check if the mouse is on the window
         if (FindPoint(window->GetFullBoundingMin(), window->GetFullBoundingMax(), mouse_pos))
         {
+            // Now if a other window of interest is there but it has a higher z-index...
+            // meaning it is behind our current window of interest then the current window is not our only window of interest
             if (!interest || window->GetZIndex() < interest->GetZIndex()) {
                 interest = window;
             }
         }
     }
+    // return a window of interest--if there is one
     return interest;
 }
 
+void FocusNewWindow(FloodWindow* target)
+{
+    // We check if the target is already active
+    // if so no need to compute
+    if (target->WindowIsActive())
+        return;
+    // Store the pre-index
+    uint16_t prev_index = target->GetZIndex();
+    // Looping through all windows
+    for (auto& [name, window] : FloodGui::Context.Windows)
+    {
+        const uint16_t& win_z = window->GetZIndex();
+        // So now if the current window of the loop
+        // has a z-index lower, meaning more in focus
+        // then we will need to shift it down
+        if (win_z < prev_index && target != window /* Just in case??*/) {
+            window->SetZIndex(window->GetZIndex() + 1);
+            window->SetWindowActive(false);
+        }
+    }
+    // Ok, now this is where we can now set this window as active
+    target->SetWindowActive(true);
+}
+
+
+//                    //
+// Namespace FloodGui //
+//                    //
 void FloodGui::NewFrame() {
-    // Open DrawList
-    //
     FloodGui::Context.FrameStage = FloodRenderStage_FrameStart;
+
+    // Make sure we clear the global draw list
+    //
     FloodGui::Context.DrawData->DrawLists.clear();
-    
 }
 
 void FloodGui::EndFrame() {
-    // Close DrawList
-    //
     FloodGui::Context.FrameStage = FloodRenderStage_FrameEnd;
 }
 
@@ -108,43 +133,44 @@ void FloodGui::Render()
 
 bool FloodDrawData::isMinimized()
 {
+    // A minimized window does not have a valid display size, it is 0
     return this && Display && (Display->DisplaySize.x <= 0.0f || Display->DisplaySize.y <= 0.0f);
 }
 
 bool FloodGuiD3D9Init(IDirect3DDevice9* device)
 {
-    // We should check if we already intialized this..
     if (FloodGui::Context.Initalized)
         return false;
+
+    // Set up the backend for rendering...
     FloodGuiD3D9Data* backend_data = new FloodGuiD3D9Data();
-
-
-
     FloodGui::Context.IO.BackendRendererData = backend_data;
 
+    // We now set up our ver. of the device
     backend_data->pd3dDevice = device;
-
     backend_data->pd3dDevice->AddRef();
 
+    // Notfiy that backend has been initalized
     FloodGui::Context.Initalized = true;
 }
 
 void FloodGuiD3D9Shutdown() {
+    // This is clearly cleaning up and freeing memory
     if (!FloodGui::Context.Initalized)
         return;
+
     FloodGuiD3D9Data* backend_data = FloodGui::Context.IO.BackendRendererData;
     if (!backend_data || !backend_data->pd3dDevice)
         return;
     if (backend_data->pVB) { backend_data->pVB->Release(); backend_data->pVB = nullptr; }
     if (backend_data->pIB) { backend_data->pIB->Release(); backend_data->pIB = nullptr; }
-    if (backend_data->FontTexture) { backend_data->FontTexture->Release(); backend_data->FontTexture = nullptr; }
     if (backend_data->pd3dDevice) { backend_data->pd3dDevice->Release(); }
     delete backend_data;
 }
 
 void FloodGuiD3D9NewFrame() {
-    // Todo:
-    // We should validate fonts if needed here...
+    // This is practically unused
+    //
 
 }
 
@@ -160,6 +186,7 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
         return;
     }
 
+    // We extend the buffer size if needed
     if (!backend_data->pVB || backend_data->VertexBufferSize < drawData->GetVertexCount())
     {
         if (backend_data->pVB) { backend_data->pVB->Release(); backend_data->pVB = nullptr; }
@@ -175,6 +202,7 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
             return;
     }
 
+    // We should store the d3d state
     IDirect3DStateBlock9* d3d9_state_block = nullptr;
     if (backend_data->pd3dDevice->CreateStateBlock(D3DSBT_ALL, &d3d9_state_block) < 0)
         return;
@@ -202,7 +230,8 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
         d3d9_state_block->Release();
         return;
     }
-
+    // We are filling up the global drawlist
+    //
     for (int n = 0; n < drawData->DrawLists.size(); n++)
     {
         const FloodDrawList* cmd_list = drawData->DrawLists[n];
@@ -228,6 +257,7 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
     backend_data->pd3dDevice->SetIndices(backend_data->pIB);
     backend_data->pd3dDevice->SetFVF((D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1));
 
+    // Here we are setting up the veiwport and rendering
     {
         D3DVIEWPORT9 vp;
         vp.X = vp.Y = 0;
@@ -270,6 +300,7 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
         backend_data->pd3dDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
         backend_data->pd3dDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
+        // We set up our viewmatrix..this is very important
         {
             D3DMATRIX mat_identity = { { { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f } } };
             D3DMATRIX mat_projection = drawData->Display->matrix_project();
@@ -283,28 +314,29 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
     int global_vtx_offset = 0;
     int global_idx_offset = 0;
 
+    // We loop throught the global draw list
     for (int n = 0; n < drawData->DrawLists.size(); n++)
     {
         const FloodDrawList* cmd_list = drawData->DrawLists[n];
         int vtx_offset = 0;
         int idx_offset = 0;
 
+        // We are looping through practically every cmd to the gpu
         for (int i = 0; i < cmd_list->Elements.size(); i++) {
             const FloodDrawMaterial& material = cmd_list->Elements[i];
-            /*
-                Todo:
-                Work on texture / text rendering
-            */
-            backend_data->pd3dDevice->SetTexture(0, material.texture);
+            // This is where we draw our vertexs and points
             backend_data->pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vtx_offset + global_vtx_offset, 0, (UINT)cmd_list->VertexBuffer.size(), idx_offset + global_idx_offset, material.index_count / 3);
+            // Make sure to increase the index offsets, or we are drawing points in the wrong order
             idx_offset += material.index_count;
         }
 
+        // Make sure to increase these offsets or we are not going to be
+        // drawing anything correctly
         global_idx_offset += cmd_list->IndexBuffer.size();
         global_vtx_offset += cmd_list->VertexBuffer.size();
     }
 
-
+    // Now can begin resoring
     backend_data->pd3dDevice->SetTransform(D3DTS_WORLD, &last_world);
     backend_data->pd3dDevice->SetTransform(D3DTS_VIEW, &last_view);
     backend_data->pd3dDevice->SetTransform(D3DTS_PROJECTION, &last_projection);
@@ -314,38 +346,23 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
     d3d9_state_block->Release();
 }
 
-void FocusNewWindow(FloodWindow* target)
-{
-    if (target->WindowIsActive())
-        return;
-    uint16_t prev_index = target->GetZIndex();
-    for (auto& [name, window] : FloodGui::Context.Windows)
-    {
-        const uint16_t& win_z = window->GetZIndex();
-        if (win_z < prev_index && target != window /* Just in case??*/) {
-            window->SetZIndex(window->GetZIndex() + 1);
-            window->SetWindowActive(false);
-        }
-    }
-    target->SetWindowActive(true);
-}
-
 void FloodGui::BeginWindow(const char* windowName)
 {
     FloodContext& context = FloodGui::Context;
     bool windowExists = context.Windows.find(windowName) != context.Windows.end();
     FloodWindow* window = nullptr;
+    // Create a new window if it doesnt exist
     if (!windowExists)
     {
-        window = new FloodWindow({ 200, 200 });
+        window = new FloodWindow(windowName, { 200, 200 });
         window->SetZIndex(context.ActiveDrawingWindowZIndex++);
         context.Windows[windowName] = window;
     }
     else
         window = context.Windows[windowName];
     context.ActiveDrawingWindow = window;
-    FloodDrawList* DrawList = window->GetDrawList();
-    DrawList->Clear();
+
+    FloodDrawList* DrawList = window->GetDrawList();  DrawList->Clear();
 
     if (window == get_window_hovering() && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
         FocusNewWindow(window);
@@ -358,7 +375,7 @@ void FloodGui::BeginWindow(const char* windowName)
     static const int font_size = 7;
     static const int spacing = 7;
     DrawList->AddRectFilled(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), window->WindowIsActive() ? Context.colors[FloodGuiCol_WinTitleBarActive] :Context.colors[FloodGuiCol_WinTitleBar]);
-    DrawList->AddText(windowName, window->GetBoundingTitleMin() + FloodVector2(font_size / .4f, font_size* (font_size/3.1f)), FloodColor(255, 255, 255, 255), font_size, spacing);
+    DrawList->AddText(windowName, window->GetBoundingTitleMin() + FloodVector2(font_size / .4f, font_size* (font_size/3.1f)), Context.colors[FloodGuiCol_Text], font_size, spacing);
     DrawList->AddRectFilled(window->GetBoundingContentMin(), window->GetBoundingContentMax() , Context.colors[FloodGuiCol_WinBkg]);
 }
 
@@ -380,6 +397,7 @@ void FloodDrawList::AddRectFilled(const FloodVector2& min, const FloodVector2& m
 
 void FloodDrawList::ReserveGeo(const int& index_count, const int& vertex_count)
 {
+    // We need to reserve space for the vertexs and indecies
     int vtx_buffer_old_size = VertexBuffer.size();
     VertexBuffer.resize(vtx_buffer_old_size + vertex_count);
     VertexWrite = (VertexBuffer.data() + vtx_buffer_old_size);
@@ -411,6 +429,17 @@ void FloodDrawList::AddLine(const FloodVector2& p1, const FloodVector2& p2, Floo
 {
     AddPolyLine({ p1, p2 }, col, thickness);
 }
+
+void FloodDrawList::AddRect(const FloodVector2& min, const FloodVector2& max, FloodColor col, float thickness)
+{
+    // Just multiple calls to AddLine
+    // (could just call once to AddPolyLine)
+    AddLine(min, { max.x, min.y}, col, thickness);
+    AddLine({max.x, min.y}, max, col, thickness);
+    AddLine(max, {min.x, max.y}, col, thickness);
+    AddLine({min.x, max.y}, min, col, thickness);
+}
+
 
 void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColor col, float font_size) {
     const float width = font_size;
@@ -832,9 +861,11 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
 
 void FloodDrawList::AddText(const char* text, const FloodVector2& position, FloodColor col, float font_size, float spacing)
 {
+    // We loop through each char of the text
     for (uint16_t i = 0; i < strlen(text); i++)
     {
         const char& c = text[i];
+        // Now we actual fill up the vertex buffer and index buffer
         AllocChar(c, FloodVector2(position) + FloodVector2{ i * (spacing + font_size), 0 }, col, font_size);
     }
 }

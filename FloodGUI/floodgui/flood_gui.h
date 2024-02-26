@@ -102,6 +102,7 @@ enum FloodKey : uint16_t {
     FloodGuiKey_NamedKey_END = FloodGuiKey_COUNT,
     FloodGuiKey_NamedKey_COUNT = FloodGuiKey_NamedKey_END - FloodGuiKey_NamedKey_BEGIN,
 }; 
+
 enum FloodMouseButton : uint16_t {
     FLoodGuiButton_None = 0,
     FloodGuiButton_LeftMouse,
@@ -110,15 +111,16 @@ enum FloodMouseButton : uint16_t {
     FloodGuiButton_Extra3,
     FloodGuiButton_Extra4
 };
+
 struct FloodKeyInput {
 	std::chrono::milliseconds time{}; // of last click
 	std::chrono::milliseconds ms{}; // since last clicked
 	uint32_t count = 0; // times pressed
 };
+
 struct FloodGuiD3D9Data;
 struct FloodGuiWinData;
-class FloodDrawData;
-struct FloodWindow;
+
 enum FloodRenderStage : uint16_t{
     FloodRenderStage_None = 0,
     FloodRenderStage_FrameStart,
@@ -126,6 +128,7 @@ enum FloodRenderStage : uint16_t{
     FloodRenderStage_FrameRenderStart,
     FloodRenderStage_FrameRenderEnd
 };
+
 struct FloodIO // Input / Output
 {
 	FloodGuiD3D9Data* BackendRendererData = nullptr;
@@ -143,13 +146,15 @@ struct FloodIO // Input / Output
 	std::unordered_map< FloodKey, FloodKeyInput > KeyboardInputs{};
 	void AddKeyEventDown(FloodKey key);
 };
+
 class FloodDisplay {
 public:
 	FloodDisplay(){ }
 	FloodVector2	DisplaySize;
 	FloodVector2	DisplayPosition;
     D3DMATRIX matrix_project() {
-        // Orthographic projection matrix for 2D rendering
+        // Orthographic projection matrix
+        // I HAVE NO IDEA WHAT IM DOING!!!!
         float L = DisplayPosition.x + 0.5f;
         float R = DisplayPosition.x + DisplaySize.x + 0.5f;
         float T = DisplayPosition.y + 0.5f;
@@ -168,10 +173,13 @@ enum FloodGuiCol : uint16_t {
     FloodGuiCol_WinBkg = 0, 
     FloodGuiCol_WinTitleBar,
     FloodGuiCol_WinTitleBarActive,
-    FloodGuiCol_Border
+    FloodGuiCol_Border,
+    FloodGuiCol_Text,
 };
 
-class FloodContext // Holds current infomation about instance'
+class FloodDrawData;
+struct FloodWindow;
+class FloodContext // Holds current infomation about instance
 {
 public:
 	bool Initalized = false;
@@ -200,6 +208,7 @@ namespace FloodGui {
         Context.colors[FloodGuiCol_WinTitleBar] = FloodColor(16, 2, 26, 255);
         Context.colors[FloodGuiCol_WinTitleBarActive] = FloodColor(32, 5, 51, 255);
         Context.colors[FloodGuiCol_Border] = FloodColor(2, 2, 2, 255);
+        Context.colors[FloodGuiCol_Text] = FloodColor(255, 255, 255, 255);
     }
 }
 

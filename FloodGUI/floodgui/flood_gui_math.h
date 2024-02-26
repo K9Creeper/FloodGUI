@@ -195,3 +195,8 @@ public:
 	FloodColor(float r, float g, float b, float a = 1.f) { this->r = static_cast<int>(r * 255.f); this->g = static_cast<int>(g * 255.f); this->b = static_cast<int>(b * 255.f); this->a = static_cast<int>(a * 255.f);}
 	FloodColor(int r, int g, int b, int a){ this->r = r; this->g = g; this->b = b; this->a = a; }
 };
+
+constexpr bool FindPoint(const FloodVector2& min, const FloodVector2& max, const FloodVector2& point)
+{
+	return (point.x > min.x && point.x < max.x&& point.y > min.y && point.y < max.y);
+}

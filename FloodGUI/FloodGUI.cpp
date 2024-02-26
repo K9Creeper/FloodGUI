@@ -2,6 +2,7 @@
 // THIS FILE IS NOT APART OF FloodGUI
 // Flood GUI IS LOCATED IN THE FloodGUI FOLDER
 #include <iostream>
+
 #include <Windows.h>
 
 #include "floodgui/flood_gui.h"
@@ -13,7 +14,6 @@ FloodColor clearColor(.5f, .5f, .5f, 1.f);
 LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
 LPDIRECT3DDEVICE9 d3ddev;
 D3DPRESENT_PARAMETERS d3dpp;
-MARGINS  margin;
 MSG msg;
 bool running = true;
 
@@ -83,17 +83,14 @@ int main()
 			if (msg.message == WM_QUIT)
 			{
 				std::cout << "Quit" << "\n";
-				// Free memory
-				// Clean up
-				CleanupDeviceD3D();
 
+				CleanupDeviceD3D();
 				running = false;
 			}
 		}
 		if (!running)
 			break;
-		// We render down here
-		//
+
 		FloodGuiWinNewFrame();
 		FloodGuiD3D9NewFrame();
 
@@ -101,7 +98,7 @@ int main()
 		{
 			FloodGui::BeginWindow("Window 1");
 			
-			//FloodGui::Context.Windows.find("Window 1")->second->GetDrawList()->AddText("abcdefghijklmnopqrstuvwxyz1234567890", FloodVector2(200, 500), FloodColor(), 15, 15);
+
 
 			FloodGui::EndWindow();
 

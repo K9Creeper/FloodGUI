@@ -1,18 +1,14 @@
-// This is where drawing functions are pre-defined...
-// later defined in it's respective .cpp file.
-
 #pragma once
+
 #include <Windows.h>
-#include <dwmapi.h>
 #include <d3d9.h>
 #include <vector>
+
 #include "flood_gui_math.h"
 
 class FloodDrawData;
-
 struct FloodWindow;
 struct FloodDisplay;
-
 struct FloodDrawList;
 
 bool FloodGuiD3D9Init(IDirect3DDevice9* device);
@@ -25,8 +21,6 @@ void FloodGuiD3D9NewFrame();
 //  V
 void FloodGuiD3D9RenderDrawData(FloodDrawData* draw_data);
 
-void FloodGuiD3D9Shutdown();
-
 namespace FloodGui {
 	// Main Functions
 	//
@@ -34,6 +28,9 @@ namespace FloodGui {
 	extern inline void NewFrame();
 	extern inline void EndFrame();
 
+	//								//
+	// High Level Drawing Functions //
+	//								//
 	extern inline void BeginWindow(const char* windowName);
 	extern inline void EndWindow();
 }
@@ -109,9 +106,9 @@ public:
 	{
 		IndexWrite = nullptr;
 		VertexWrite = nullptr;
-		VertexBuffer.resize(0);
-		IndexBuffer.resize(0);
-		Elements.resize(0);
+		VertexBuffer.clear();
+		IndexBuffer.clear();
+		Elements.clear();
 		VertexCurrentIdx = 0;
 	}
 private:
@@ -129,8 +126,10 @@ private:
 
 	uint16_t zIndex = 0; // 0 - top layer, 1,2,3.. are behind this index
 
+	const char* sName;
 public:
-	FloodWindow(FloodVector2 size, FloodVector2 position = FloodVector2(0, 0), float titlebar_size = 25) {
+	FloodWindow(const char* sName, FloodVector2 size, FloodVector2 position = FloodVector2(0, 0), float titlebar_size = 25) {
+		this->sName = sName;
 		this->size = size;
 		this->position = position;
 		this->titlebar_size = FloodVector2(size.x, titlebar_size);
