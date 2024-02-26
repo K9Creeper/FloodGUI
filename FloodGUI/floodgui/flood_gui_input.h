@@ -82,10 +82,13 @@ void FloodIO::AddKeyEventDown(FloodKey key)
 void FloodIO::AddMouseMoveEvent(FloodVector2 mouse_pos)
 {
     // Wow, its that easy
-    mouse_pos = mouse_pos;
+    if (!FloodIO::MouseInput[FloodGuiButton_LeftMouse])
+        FloodIO::pmouse_pos = mouse_pos;
+    FloodIO::mouse_pos = mouse_pos;
+    
 }
 void FloodIO::AddMouseClickEvent(FloodMouseButton button, bool button_down) {
     if (FloodGui::Context.FrameStage != FloodRenderStage_FrameRenderEnd)
         return;
-    MouseInput[button] = button_down;
+    FloodIO::MouseInput[button] = button_down;
 }

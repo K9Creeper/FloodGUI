@@ -131,7 +131,9 @@ struct FloodIO // Input / Output
 	FloodGuiD3D9Data* BackendRendererData = nullptr;
     FloodGuiWinData* BackendPlatformData = nullptr;
 
-	FloodVector2 mouse_pos;
+	FloodVector2 mouse_pos; // Current mouse positon
+    FloodVector2 pmouse_pos; // Prev mouse positon
+
 	std::unordered_map<FloodMouseButton, bool > MouseInput{};
 	void AddMouseMoveEvent(FloodVector2 mouse_pos);
 	void AddMouseClickEvent(FloodMouseButton button, bool button_down);
@@ -146,24 +148,26 @@ public:
 	FloodDisplay(){ }
 	FloodVector2	DisplaySize;
 	FloodVector2	DisplayPosition;
-	D3DMATRIX matrix_project() {
-		// orthographic projection matrix
-		const float L = DisplayPosition.x + 0.5f;
-		const float R = DisplayPosition.x + DisplaySize.x + 0.5f;
-		const float T = DisplayPosition.y + 0.5f;
-		const float B = DisplayPosition.y + DisplaySize.y + 0.5f;
-		return { { {
-			2.0f / (R - L),   0.0f,         0.0f,  0.0f,
-			0.0f,         2.0f / (T - B),   0.0f,  0.0f,
-			0.0f,         0.0f,         0.5f,  0.0f,
-			(L + R) / (L - R),  (T + B) / (B - T),  0.5f,  1.0f
-		} } };
-	}
+    D3DMATRIX matrix_project() {
+        // Orthographic projection matrix for 2D rendering
+        float L = DisplayPosition.x + 0.5f;
+        float R = DisplayPosition.x + DisplaySize.x + 0.5f;
+        float T = DisplayPosition.y + 0.5f;
+        float B = DisplayPosition.y + DisplaySize.y + 0.5f;
+
+        return { { {
+            2.0f / (R - L),   0.0f,         0.0f,  0.0f,
+            0.0f,         2.0f / (T - B),   0.0f,  0.0f,
+            0.0f,         0.0f,         0.5f,  0.0f,
+            (L + R) / (L - R),  (T + B) / (B - T),  0.5f,  1.0f
+        } } };
+    }
 };
 
 enum FloodGuiCol : uint16_t {
     FloodGuiCol_WinBkg = 0, 
-    FloodGuiCol_WinHeader,
+    FloodGuiCol_WinTitleBar,
+    FloodGuiCol_WinTitleBarActive,
     FloodGuiCol_Border
 };
 
@@ -178,8 +182,10 @@ public:
     FloodRenderStage    FrameStage = FloodRenderStage_None;
 
     std::unordered_map<const char*, FloodWindow*>Windows{};
+
     FloodWindow* ActiveWindow = nullptr;
     FloodWindow* ActiveDrawingWindow = nullptr;
+    int ActiveDrawingWindowZIndex = 0;
 
     std::unordered_map<FloodGuiCol, FloodColor>colors{};
 };
@@ -189,8 +195,11 @@ public:
 namespace FloodGui {
 	extern inline FloodContext Context{};
 
-    extern inline void SetupStyle() {
-
+    extern inline void SetupColorStyle() {
+        Context.colors[FloodGuiCol_WinBkg] = FloodColor(22, 2, 36, 225);
+        Context.colors[FloodGuiCol_WinTitleBar] = FloodColor(16, 2, 26, 255);
+        Context.colors[FloodGuiCol_WinTitleBarActive] = FloodColor(32, 5, 51, 255);
+        Context.colors[FloodGuiCol_Border] = FloodColor(2, 2, 2, 255);
     }
 }
 

@@ -32,7 +32,7 @@ void FloodGuiWinNewFrame()
 		return;
 	// Compisate for window resize and position change
 	RECT hwndRect = { 0, 0, 0, 0 };
-	GetClientRect(backend_data->hwnd, &hwndRect);
+	GetClientRect(backend_data->hwnd, &hwndRect);	
 	FloodGui::Context.Display.DisplaySize = FloodVector2{ static_cast<float>(hwndRect.right - hwndRect.left), static_cast<float>(hwndRect.bottom - hwndRect.top) };
 	FloodGui::Context.Display.DisplayPosition = FloodVector2{ static_cast<float>(hwndRect.left), static_cast<float>(hwndRect.top) };
 }
@@ -44,7 +44,6 @@ void FloodGuiWinShutdown()
 	FloodGuiWinData* backend_data = FloodGui::Context.IO.BackendPlatformData;
 	if (!backend_data)
 		return;
-
 
 	delete backend_data;
 }

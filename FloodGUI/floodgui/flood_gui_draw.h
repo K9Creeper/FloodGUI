@@ -54,12 +54,13 @@ public:
 
 struct FloodDrawMaterial {
 	std::vector<FloodVector2>Points{};
-	bool shouldFill = false;
 	FloodColor col;
 	float thinkness;
 
 	int index_count; 
 	int vertex_count; // equal to points size
+
+	LPDIRECT3DTEXTURE9 texture; // for like text
 };
 
 typedef unsigned short FloodDrawIndex;
@@ -99,19 +100,24 @@ public:
 
 	void AddLine(const FloodVector2& p1, const FloodVector2& p2, FloodColor col, float thickness = 1.f);
 	void AddRect(const FloodVector2& min, const FloodVector2& max, FloodColor col, float thickness = 1.f);
+	void AddPolyLine(const std::vector<FloodVector2> points, FloodColor col, float thickness = 1.f);
 	void AddRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col);
+	
+	void AddText(const char* text, const FloodVector2& position, FloodColor col, float font_size, float spacing=16);
 
 	void Clear()
 	{
 		IndexWrite = nullptr;
 		VertexWrite = nullptr;
-		VertexBuffer.clear();
-		IndexBuffer.clear();
-		Elements.clear();
+		VertexBuffer.resize(0);
+		IndexBuffer.resize(0);
+		Elements.resize(0);
 		VertexCurrentIdx = 0;
 	}
 private:
-	void AllocRect(const FloodVector2& min, const FloodVector2& max, FloodColor col);
+	void AllocRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col);
+	void AllocChar(char text, const FloodVector2& position, FloodColor col, float font_size);
+
 	void ReserveGeo(const int& index_count, const int& vertex_count);
 };
 
@@ -124,18 +130,30 @@ private:
 	uint16_t zIndex = 0; // 0 - top layer, 1,2,3.. are behind this index
 
 public:
-	FloodWindow(FloodVector2 size, FloodVector2 position = FloodVector2(0,0)) {
+	FloodWindow(FloodVector2 size, FloodVector2 position = FloodVector2(0, 0), float titlebar_size = 25) {
 		this->size = size;
 		this->position = position;
+		this->titlebar_size = FloodVector2(size.x, titlebar_size);
 	}
 
 	FloodVector2 position;
 	FloodVector2 size;
+	FloodVector2 titlebar_size;
 
 	FloodDrawList* GetDrawList() { return &DrawList; }
+
+	FloodVector2 GetFullBoundingMin() { return position; }
+	FloodVector2 GetFullBoundingMax() { return position+size+ FloodVector2{ 0, titlebar_size.y }; }
+
+	FloodVector2 GetBoundingTitleMin() { return position; }
+	FloodVector2 GetBoundingTitleMax() { return position + titlebar_size; }
+
+	FloodVector2 GetBoundingContentMin() { return position + FloodVector2{0, titlebar_size.y}; }
+	FloodVector2 GetBoundingContentMax() { return position + size + FloodVector2{ 0, titlebar_size.y }; }
 
 	bool WindowIsActive()const { return isActive; }
 	void SetZIndex(uint16_t zIndex){ this->zIndex = zIndex; }
 	uint16_t GetZIndex() { return zIndex; }
-	void SetWindowActive() { isActive = true; SetZIndex(0);  }
+	void SetWindowActive(bool s=true) { this->isActive = s; if(s)SetZIndex(0);  }
+	void MoveWindow(const FloodVector2& newPos) { position = newPos; }
 };
