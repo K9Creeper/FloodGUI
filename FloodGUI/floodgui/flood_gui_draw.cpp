@@ -107,35 +107,9 @@ void FocusNewWindow(FloodWindow* target)
     target->SetWindowActive(true);
 }
 
-
-//                    //
-// Namespace FloodGui //
-//                    //
-void FloodGui::NewFrame() {
-    FloodGui::Context.FrameStage = FloodRenderStage_FrameStart;
-
-    // Make sure we clear the global draw list
-    //
-    FloodGui::Context.DrawData->DrawLists.clear();
-}
-
-void FloodGui::EndFrame() {
-    FloodGui::Context.FrameStage = FloodRenderStage_FrameEnd;
-}
-
-void FloodGui::Render()
-{
-    // Go over DrawList and validate things
-    FloodGui::Context.FrameStage = FloodRenderStage_FrameRenderStart;
-    FloodDrawData* drawData = FloodGui::Context.DrawData;
-    for (const auto& [name, window] : SortWindows()) { drawData->DrawLists.push_back(window->GetDrawList()); }
-}
-
-bool FloodDrawData::isMinimized()
-{
-    // A minimized window does not have a valid display size, it is 0
-    return this && Display && (Display->DisplaySize.x <= 0.0f || Display->DisplaySize.y <= 0.0f);
-}
+//                                  //
+//  Global Flood Gui D3D Functions  //
+//                                  //
 
 bool FloodGuiD3D9Init(IDirect3DDevice9* device)
 {
@@ -346,6 +320,30 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
     d3d9_state_block->Release();
 }
 
+
+//                    //
+// Namespace FloodGui //
+//                    //
+void FloodGui::NewFrame() {
+    FloodGui::Context.FrameStage = FloodRenderStage_FrameStart;
+
+    // Make sure we clear the global draw list
+    //
+    FloodGui::Context.DrawData->DrawLists.clear();
+}
+
+void FloodGui::EndFrame() {
+    FloodGui::Context.FrameStage = FloodRenderStage_FrameEnd;
+}
+
+void FloodGui::Render()
+{
+    // Go over DrawList and validate things
+    FloodGui::Context.FrameStage = FloodRenderStage_FrameRenderStart;
+    FloodDrawData* drawData = FloodGui::Context.DrawData;
+    for (const auto& [name, window] : SortWindows()) { drawData->DrawLists.push_back(window->GetDrawList()); }
+}
+
 void FloodGui::BeginWindow(const char* windowName)
 {
     FloodContext& context = FloodGui::Context;
@@ -363,15 +361,20 @@ void FloodGui::BeginWindow(const char* windowName)
     context.ActiveDrawingWindow = window;
 
     FloodDrawList* DrawList = window->GetDrawList();  DrawList->Clear();
-
-    if (window == get_window_hovering() && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
-        FocusNewWindow(window);
-        if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos)) {
-            const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - FloodGui::Context.IO.pmouse_pos ;
-            window->MoveWindow(dst);
+    {
+        static FloodVector2 relative_dst;
+        if (window == get_window_hovering() && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
+            FocusNewWindow(window);
+            if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos)) {
+                const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - FloodGui::Context.IO.pmouse_pos;
+                window->MoveWindow(relative_dst+dst);
+            }
+        }
+        else if (window == get_window_hovering())
+        {
+            relative_dst = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
         }
     }
-
     static const int font_size = 7;
     static const int spacing = 7;
     DrawList->AddRectFilled(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), window->WindowIsActive() ? Context.colors[FloodGuiCol_WinTitleBarActive] :Context.colors[FloodGuiCol_WinTitleBar]);
@@ -387,6 +390,9 @@ void FloodGui::EndWindow() {
     context.ActiveDrawingWindow = nullptr;
 }
 
+//                  //
+//  Flood Draw List //
+//                  //
 void FloodDrawList::AddRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col)
 {
     static const int index_count = 6, vertex_count = 4;
@@ -394,7 +400,6 @@ void FloodDrawList::AddRectFilled(const FloodVector2& min, const FloodVector2& m
     ReserveGeo(index_count, vertex_count);
     AllocRectFilled(min, max, col);
 }
-
 void FloodDrawList::ReserveGeo(const int& index_count, const int& vertex_count)
 {
     // We need to reserve space for the vertexs and indecies
@@ -406,7 +411,6 @@ void FloodDrawList::ReserveGeo(const int& index_count, const int& vertex_count)
     IndexBuffer.resize(idx_buffer_old_size + index_count);
     IndexWrite = (IndexBuffer.data() + idx_buffer_old_size);
 }
-
 void FloodDrawList::AllocRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col)
 {
     FloodVector2 b(max.x, min.y);
@@ -424,12 +428,10 @@ void FloodDrawList::AllocRectFilled(const FloodVector2& min, const FloodVector2&
     VertexCurrentIdx += 4;
     IndexWrite += 6;
 }
-
 void FloodDrawList::AddLine(const FloodVector2& p1, const FloodVector2& p2, FloodColor col, float thickness)
 {
     AddPolyLine({ p1, p2 }, col, thickness);
 }
-
 void FloodDrawList::AddRect(const FloodVector2& min, const FloodVector2& max, FloodColor col, float thickness)
 {
     // Just multiple calls to AddLine
@@ -439,8 +441,6 @@ void FloodDrawList::AddRect(const FloodVector2& min, const FloodVector2& max, Fl
     AddLine(max, {min.x, max.y}, col, thickness);
     AddLine({min.x, max.y}, min, col, thickness);
 }
-
-
 void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColor col, float font_size) {
     const float width = font_size;
     const float height = font_size * 1.3f;
@@ -858,7 +858,6 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
     }
     }
 }
-
 void FloodDrawList::AddText(const char* text, const FloodVector2& position, FloodColor col, float font_size, float spacing)
 {
     // We loop through each char of the text
@@ -869,7 +868,6 @@ void FloodDrawList::AddText(const char* text, const FloodVector2& position, Floo
         AllocChar(c, FloodVector2(position) + FloodVector2{ i * (spacing + font_size), 0 }, col, font_size);
     }
 }
-
 void FloodDrawList::AddPolyLine(const std::vector<FloodVector2> points, FloodColor col, float thickness)
 {
     if (points.size() < 2)
@@ -914,6 +912,14 @@ void FloodDrawList::AddPolyLine(const std::vector<FloodVector2> points, FloodCol
     }
 }
 
+//                 //
+// Flood Draw Data //
+//                 //
+bool FloodDrawData::isMinimized()
+{
+    // A minimized window does not have a valid display size, it is 0
+    return this && Display && (Display->DisplaySize.x <= 0.0f || Display->DisplaySize.y <= 0.0f);
+}
 unsigned int FloodDrawData::GetVertexCount() const
 {
     unsigned int ttl = 0;
@@ -923,7 +929,6 @@ unsigned int FloodDrawData::GetVertexCount() const
     }
     return ttl;
 }
-
 unsigned int FloodDrawData::GetIndexCount() const
 {
     unsigned int ttl = 0;

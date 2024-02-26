@@ -16,6 +16,7 @@ LPDIRECT3DDEVICE9 d3ddev;
 D3DPRESENT_PARAMETERS d3dpp;
 MSG msg;
 bool running = true;
+HWND hwnd;
 
 bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
@@ -31,38 +32,43 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 	switch (message)
 	{
 	case WM_PAINT:
-
+	{
 
 		break;
+	}
 	case WM_DESTROY:
+	{
 		PostQuitMessage(0);
 		return 0;
 		break;
+	}
 	}
 	
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
 int main()
-{
-	std::cout << "Began\n";
-	
-	WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, MainWindowProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"Flood Gui Example", nullptr };
-	RegisterClassExW(&wc);
-	HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Flood Gui Example", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
-
-	// Initialize Direct3D
-	if (!CreateDeviceD3D(hwnd))
+{	
+	// Set up test window
+	WNDCLASSEXW wc;
 	{
-		CleanupDeviceD3D();
-		UnregisterClassW(wc.lpszClassName, wc.hInstance);
-		return 1;
+		wc = { sizeof(wc), CS_CLASSDC, MainWindowProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"Flood Gui Example", nullptr };
+		RegisterClassExW(&wc);
+		hwnd = ::CreateWindowW(wc.lpszClassName, L"Flood Gui Example", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
+
+		// Initialize Direct3D
+		if (!CreateDeviceD3D(hwnd))
+		{
+			CleanupDeviceD3D();
+			UnregisterClassW(wc.lpszClassName, wc.hInstance);
+			return 1;
+		}
+
+
+		// Show the window
+		ShowWindow(hwnd, SW_SHOWDEFAULT);
+		UpdateWindow(hwnd);
 	}
-
-	// Show the window
-	ShowWindow(hwnd, SW_SHOWDEFAULT);
-	UpdateWindow(hwnd);
-
 
 	FloodGui::SetupColorStyle();
 	FloodGuiWinInit(hwnd);
@@ -75,19 +81,7 @@ int main()
 	D3DCOLOR clear_col_dx = ColorToUint32(clearColor);
 
 	while (running) {
-		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-
-			DispatchMessage(&msg);
-			if (msg.message == WM_QUIT)
-			{
-				std::cout << "Quit" << "\n";
-
-				CleanupDeviceD3D();
-				running = false;
-			}
-		}
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessage(&msg); if (msg.message == WM_QUIT) {CleanupDeviceD3D(); running = false; } }
 		if (!running)
 			break;
 
@@ -126,7 +120,6 @@ int main()
 		
 		HRESULT result = d3ddev->Present(nullptr, nullptr, nullptr, nullptr);
 	}
-
 
 	FloodGuiD3D9Shutdown();
 	FloodGuiWinShutdown();

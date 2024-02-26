@@ -106,5 +106,10 @@ LRESULT CALLBACK FloodGuiWindowWinProcHandler(HWND hwnd, UINT msg, WPARAM wParam
 		}
 	}
 
+	// This will be here for
+	// convinence, but it is very cluttery
+	if (FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+		FloodGui::Context.IO.pmouse_pos = FloodVector2(0, 0);
+
 	return 0;
 }
