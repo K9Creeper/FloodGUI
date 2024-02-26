@@ -53,7 +53,7 @@ constexpr FloodKey FloodGuiWinVirtualKeyToFloodGuiKey(WPARAM wParam)
     }
 }
 
-void FloodIO::AddKeyEventDown(FloodKey key)
+void FloodIO::AddKeyEventDown(FloodKey key, bool down)
 {
     if (FloodGui::Context.FrameStage != FloodRenderStage_FrameRenderEnd)
         return;
@@ -67,15 +67,17 @@ void FloodIO::AddKeyEventDown(FloodKey key)
 
     const double ms = abs(KeyboardInputs[key].time.count() - now.count());
     FloodKeyInput& input = KeyboardInputs[key];
-    if (input.count < 2 && KeyRepeatDelay <= ms) {
-        input.ms = abs(input.time - now);
-        input.time = now;
-        input.count++;
-    }
-    else if (!((KeyRepeatRate - 5.f) >= ms && (KeyRepeatRate + 5.f) <= ms) && (KeyRepeatDelay) <= ms) {
-        input.ms = abs(input.time - now);
-        input.time = now;
-        input.count = 1;
+    if (down) {
+        if (input.count < 2 && KeyRepeatDelay <= ms) {
+            input.ms = abs(input.time - now);
+            input.time = now;
+            input.count++;
+        }
+        else if (!((KeyRepeatRate - 5.f) >= ms && (KeyRepeatRate + 5.f) <= ms) && (KeyRepeatDelay) <= ms) {
+            input.ms = abs(input.time - now);
+            input.time = now;
+            input.count = 1;
+        }
     }
 }
 

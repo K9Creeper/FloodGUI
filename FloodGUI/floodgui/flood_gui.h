@@ -115,7 +115,7 @@ enum FloodMouseButton : uint16_t {
 struct FloodKeyInput {
 	std::chrono::milliseconds time{}; // of last click
 	std::chrono::milliseconds ms{}; // since last clicked
-	uint32_t count = 0; // times pressed
+	int count = 0; // if pressed
 };
 
 struct FloodGuiD3D9Data;
@@ -142,9 +142,9 @@ struct FloodIO // Input / Output
 	void AddMouseClickEvent(FloodMouseButton button, bool button_down);
 
 	float KeyRepeatDelay = 275; // ms
-	float KeyRepeatRate = 50; // ms
+	float KeyRepeatRate = 500; // ms
 	std::unordered_map< FloodKey, FloodKeyInput > KeyboardInputs{};
-	void AddKeyEventDown(FloodKey key);
+	void AddKeyEventDown(FloodKey key, bool keydown);
 };
 
 class FloodDisplay {

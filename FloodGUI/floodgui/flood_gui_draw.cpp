@@ -1,5 +1,4 @@
 #include "flood_gui_draw.h"
-
 #include "flood_gui.h"
 
 #include <algorithm>
@@ -449,9 +448,14 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
     return false;
 }
 
-bool FloodGui::Hotkey(const char* id, FloodKey key)
+bool FloodGui::Hotkey(const char* id, uint16_t key)
 {
-
+    FloodKey k = (FloodKey)key;
+    if (Context.IO.KeyboardInputs[k].count && (Context.IO.KeyRepeatRate <= Context.IO.KeyboardInputs[k].ms.count()))
+    {
+        std::cout << "Key " << k << "  " << Context.IO.KeyboardInputs[k].ms.count()<<"\n";
+    }
+    return false;
 }
 
 //                  //

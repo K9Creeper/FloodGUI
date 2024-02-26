@@ -72,7 +72,7 @@ LRESULT CALLBACK FloodGuiWindowWinProcHandler(HWND hwnd, UINT msg, WPARAM wParam
 				const int scancode = (int)LOBYTE(HIWORD(lParam));
 				if (key != FloodGuiKey_None) {
 					// Send key event to IO
-					FloodGui::Context.IO.AddKeyEventDown(key);
+					FloodGui::Context.IO.AddKeyEventDown(key, keydown);
 				}
 			}
 			break;

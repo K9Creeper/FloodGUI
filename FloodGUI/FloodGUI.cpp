@@ -100,7 +100,7 @@ int main()
 			if (FloodGui::Checkbox("Deez2", &b))
 				std::cout << "Deez2 was pressed\n";
 
-
+			FloodGui::Hotkey("T", FloodGuiKey_B);
 
 			FloodGui::EndWindow();
 		}
