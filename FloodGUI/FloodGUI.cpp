@@ -99,13 +99,13 @@ int main()
 
 		FloodGui::NewFrame();
 		{
-			FloodGui::BeginWindow("Window1");
+			FloodGui::BeginWindow("Window 1");
 			
-			FloodGui::Context.Windows["Window1"]->GetDrawList()->AddText("abcdefghijklmnopqrstuvwxyz", { 200, 500 }, FloodColor(255, 255, 255, 255), 13, 13);
+			//FloodGui::Context.Windows.find("Window 1")->second->GetDrawList()->AddText("abcdefghijklmnopqrstuvwxyz1234567890", FloodVector2(200, 500), FloodColor(), 15, 15);
 
 			FloodGui::EndWindow();
 
-			FloodGui::BeginWindow("Window2");
+			FloodGui::BeginWindow("Window 2");
 
 
 

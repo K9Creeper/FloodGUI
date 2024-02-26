@@ -355,7 +355,10 @@ void FloodGui::BeginWindow(const char* windowName)
         }
     }
 
+    static const int font_size = 7;
+    static const int spacing = 7;
     DrawList->AddRectFilled(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), window->WindowIsActive() ? Context.colors[FloodGuiCol_WinTitleBarActive] :Context.colors[FloodGuiCol_WinTitleBar]);
+    DrawList->AddText(windowName, window->GetBoundingTitleMin() + FloodVector2(font_size / .4f, font_size* (font_size/3.1f)), FloodColor(255, 255, 255, 255), font_size, spacing);
     DrawList->AddRectFilled(window->GetBoundingContentMin(), window->GetBoundingContentMax() , Context.colors[FloodGuiCol_WinBkg]);
 }
 
@@ -480,9 +483,7 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
 
         AddLine(position, top, col, 1);
         AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
-
         AddLine(middle, FloodVector2(middle) + FloodVector2(width, 0), col, 1);
-
         AddLine(top, top + FloodVector2(width, 0), col, 1);
         break;
     }
@@ -715,6 +716,115 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top + FloodVector2(width, 0), top, col, 1);
         AddLine(top + FloodVector2(width, 0), FloodVector2(position), col, 1);
         AddLine(FloodVector2(position) + FloodVector2(width, 0), position, col, 1);
+        break;
+    }
+    case '0':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+
+        AddLine(position, top, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        AddLine(position, top + FloodVector2(width, 0), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
+        break;
+    }
+    case '1':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
+        AddLine(vmiddle, vmiddle + FloodVector2(0, -height), col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(top, top + FloodVector2(width/2.f, 0), col, 1);
+        break;
+    }
+    case '2':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
+
+        AddLine(middle + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+
+        AddLine(middle, FloodVector2(middle) + FloodVector2(width, 0), col, 1);
+        AddLine(middle, FloodVector2(position), col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        break;
+    }
+    case '3':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
+
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
+
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+
+        AddLine(middle, FloodVector2(middle) + FloodVector2(width, 0), col, 1);
+
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        break;
+    }
+    case '4':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
+        AddLine(middle, top, col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
+        AddLine(middle, middle + FloodVector2(width, 0), col, 1);
+        break;
+    }
+    case '5':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
+
+        AddLine(middle, top, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(middle, FloodVector2(middle) + FloodVector2(width, 0), col, 1);
+        AddLine(middle + FloodVector2(width, 0), FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        break;
+    }
+    case '6':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
+        AddLine(position, top, col, 1);
+        AddLine(top, top + FloodVector2{ width, 0 }, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(middle, middle + FloodVector2(width, 0), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), middle + FloodVector2(width, 0), col, 1);
+        break;
+    }
+    case '7':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
+        AddLine(vmiddle, top + FloodVector2(width, 0), col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        break;
+    }
+    case '8':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
+
+        AddLine(position, top, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(middle, FloodVector2(middle) + FloodVector2(width, 0), col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
+        break;
+    }
+    case '9':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        AddLine(top, middle, col, 1);
+        AddLine(middle + FloodVector2(width, 0), middle, col, 1);
         break;
     }
     }
