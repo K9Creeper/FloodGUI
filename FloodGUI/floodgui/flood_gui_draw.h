@@ -33,6 +33,10 @@ namespace FloodGui {
 	//								//
 	extern inline void BeginWindow(const char* windowName);
 	extern inline void EndWindow();
+
+	extern inline bool Button(const char* id);
+	extern inline bool Checkbox(const char* id, bool* val);
+	extern inline bool Hotkey(const char* id, FloodKey key);
 }
 class FloodDrawData {
 public:
@@ -135,11 +139,18 @@ public:
 		this->titlebar_size = FloodVector2(size.x, titlebar_size);
 	}
 
+	//						id			ver size
+	std::vector<std::pair<const char*, float>>content{};
+
+	uint16_t CurrentContentCount() { return content.size(); }
+
 	FloodVector2 position;
 	FloodVector2 size;
 	FloodVector2 titlebar_size;
 
 	FloodDrawList* GetDrawList() { return &DrawList; }
+
+	void Clear() { DrawList.Clear(); content.clear(); }
 
 	FloodVector2 GetFullBoundingMin() { return position; }
 	FloodVector2 GetFullBoundingMax() { return position+size+ FloodVector2{ 0, titlebar_size.y }; }

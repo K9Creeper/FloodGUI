@@ -79,7 +79,7 @@ int main()
 	std::cout << "Initalized Flood\n";
 
 	D3DCOLOR clear_col_dx = ColorToUint32(clearColor);
-
+	bool b = false;
 	while (running) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessage(&msg); if (msg.message == WM_QUIT) {CleanupDeviceD3D(); running = false; } }
 		if (!running)
@@ -92,11 +92,13 @@ int main()
 		{
 			FloodGui::BeginWindow("Window 1");
 			
+			//FloodGui::Context.FindWindowByName("Window 1")->GetDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 255, 255, 255), 15, 15);
 
+			if (FloodGui::Button("Deez"))
+				std::cout << "Deez was pressed\n";
 
-			FloodGui::EndWindow();
-
-			FloodGui::BeginWindow("Window 2");
+			if (FloodGui::Checkbox("Deez2", &b))
+				std::cout << "Deez2 was pressed\n";
 
 
 

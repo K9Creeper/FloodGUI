@@ -61,7 +61,6 @@ std::vector<std::pair<const char*, FloodWindow*>>SortWindows() {
     }
     return out;
 }
-
 FloodWindow* get_window_hovering()
 {
     FloodWindow* interest = nullptr;
@@ -82,7 +81,6 @@ FloodWindow* get_window_hovering()
     // return a window of interest--if there is one
     return interest;
 }
-
 void FocusNewWindow(FloodWindow* target)
 {
     // We check if the target is already active
@@ -106,7 +104,10 @@ void FocusNewWindow(FloodWindow* target)
     // Ok, now this is where we can now set this window as active
     target->SetWindowActive(true);
 }
-
+FloodVector2 CalcTextSize(const char* text, const float& size, const float& spacing)
+{
+    return FloodVector2(static_cast<int>(strlen(text)) * (size + spacing), size*1.3f);
+}
 //                                  //
 //  Global Flood Gui D3D Functions  //
 //                                  //
@@ -341,6 +342,7 @@ void FloodGui::Render()
     // Go over DrawList and validate things
     FloodGui::Context.FrameStage = FloodRenderStage_FrameRenderStart;
     FloodDrawData* drawData = FloodGui::Context.DrawData;
+    // Organize Global Draw Data
     for (const auto& [name, window] : SortWindows()) { drawData->DrawLists.push_back(window->GetDrawList()); }
 }
 
@@ -352,7 +354,7 @@ void FloodGui::BeginWindow(const char* windowName)
     // Create a new window if it doesnt exist
     if (!windowExists)
     {
-        window = new FloodWindow(windowName, { 200, 200 });
+        window = new FloodWindow(windowName, { 600, 600 });
         window->SetZIndex(context.ActiveDrawingWindowZIndex++);
         context.Windows[windowName] = window;
     }
@@ -360,7 +362,7 @@ void FloodGui::BeginWindow(const char* windowName)
         window = context.Windows[windowName];
     context.ActiveDrawingWindow = window;
 
-    FloodDrawList* DrawList = window->GetDrawList();  DrawList->Clear();
+    FloodDrawList* DrawList = window->GetDrawList();  window->Clear();
     {
         static FloodVector2 relative_dst;
         if (window == get_window_hovering() && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
@@ -381,13 +383,75 @@ void FloodGui::BeginWindow(const char* windowName)
     DrawList->AddText(windowName, window->GetBoundingTitleMin() + FloodVector2(font_size / .4f, font_size* (font_size/3.1f)), Context.colors[FloodGuiCol_Text], font_size, spacing);
     DrawList->AddRectFilled(window->GetBoundingContentMin(), window->GetBoundingContentMax() , Context.colors[FloodGuiCol_WinBkg]);
 }
-
 void FloodGui::EndWindow() {
     FloodContext& context = FloodGui::Context;
     if (context.Windows.size() == 0 || !context.ActiveDrawingWindow)
         return;
 
     context.ActiveDrawingWindow = nullptr;
+}
+
+bool FloodGui::Button(const char* id) {
+    FloodWindow* win = Context.ActiveDrawingWindow;
+    FloodVector2 offset{15, 15};
+    for (int i = 0; i < win->CurrentContentCount(); i++)
+        offset = offset + FloodVector2{0, win->content[i].second+ offset.y};
+    FloodVector2 textSize = CalcTextSize(id, 7, 7);
+    FloodVector2 innerPadding = textSize/1.4f;
+    FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
+    FloodVector2 boxMax = boxMin + textSize + innerPadding;
+    const bool isHovering = win->WindowIsActive() && FindPoint(boxMin, boxMax, Context.IO.mouse_pos);
+    win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
+    win->GetDrawList()->AddText(id, boxMin + FloodVector2(0, textSize.y) + innerPadding / 2.f, Context.colors[FloodGuiCol_Text], 7, 7);
+    win->content.push_back({ id, boxMax.y - boxMin.y });
+    static bool pass = true;
+    if (pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
+    {
+        pass = false;
+        return true;
+    }
+    else if(!Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+        pass = true;
+        
+    return false;
+}
+
+
+bool FloodGui::Checkbox(const char* id, bool* val) {
+    FloodWindow* win = Context.ActiveDrawingWindow;
+    FloodVector2 offset{ 15, 15 };
+    for (int i = 0; i < win->CurrentContentCount(); i++)
+        offset = offset + FloodVector2{ 0, win->content[i].second + offset.y };
+    FloodVector2 textSize = CalcTextSize(id, 6, 6);
+
+    FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
+    FloodVector2 boxMax = boxMin + FloodVector2(20, 20);
+
+    const bool isHovering = win->WindowIsActive() && FindPoint(boxMin, boxMax, Context.IO.mouse_pos);
+    const bool isToggled = (val && *val);
+    win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
+    if (isToggled)
+        win->GetDrawList()->AddRectFilled(boxMin+ (FloodVector2(20, 20)/5.f), boxMax-(FloodVector2(20, 20) / 5.f), Context.colors[FloodGuiCol_CheckboxActivated]);
+    win->GetDrawList()->AddText(id, boxMax + FloodVector2{textSize.x / 3.f, -textSize.y/2.f}- (FloodVector2(20, 20) / 7.5f), Context.colors[FloodGuiCol_Text], 6, 6);
+    
+    win->content.push_back({ id, boxMax.y - boxMin.y });
+    static bool pass = true;
+    if (pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
+    {
+        if (val)
+            *val = !*val;
+        pass = false;
+        return true;
+    }
+    else if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+        pass = true;
+
+    return false;
+}
+
+bool FloodGui::Hotkey(const char* id, FloodKey key)
+{
+
 }
 
 //                  //

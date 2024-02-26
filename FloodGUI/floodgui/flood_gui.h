@@ -175,6 +175,9 @@ enum FloodGuiCol : uint16_t {
     FloodGuiCol_WinTitleBarActive,
     FloodGuiCol_Border,
     FloodGuiCol_Text,
+    FloodGuiCol_Button,
+    FloodGuiCol_ButtonHovered,
+    FloodGuiCol_CheckboxActivated
 };
 
 class FloodDrawData;
@@ -189,6 +192,7 @@ public:
     FloodDrawData*      DrawData;
     FloodRenderStage    FrameStage = FloodRenderStage_None;
 
+    FloodWindow* FindWindowByName(const char* windowName) { return Windows.find(windowName) != Windows.end() ? Windows.find(windowName)->second : nullptr; }
     std::unordered_map<const char*, FloodWindow*>Windows{};
 
     FloodWindow* ActiveWindow = nullptr;
@@ -204,11 +208,17 @@ namespace FloodGui {
 	extern inline FloodContext Context{};
 
     extern inline void SetupColorStyle() {
-        Context.colors[FloodGuiCol_WinBkg] = FloodColor(22, 2, 36, 225);
-        Context.colors[FloodGuiCol_WinTitleBar] = FloodColor(16, 2, 26, 255);
-        Context.colors[FloodGuiCol_WinTitleBarActive] = FloodColor(32, 5, 51, 255);
+        Context.colors[FloodGuiCol_WinBkg] = FloodColor(0.1f, 0.1f, 0.13f, 1.0f);
+        Context.colors[FloodGuiCol_WinTitleBar] = FloodColor(0.16f, 0.16f, 0.21f, 1.0f);
+        Context.colors[FloodGuiCol_WinTitleBarActive] = FloodColor(0.2f, 0.2f, 0.25f, 1.0f);
+        
         Context.colors[FloodGuiCol_Border] = FloodColor(2, 2, 2, 255);
         Context.colors[FloodGuiCol_Text] = FloodColor(255, 255, 255, 255);
+        
+        Context.colors[FloodGuiCol_Button] = FloodColor(58, 58, 82, 255);
+        Context.colors[FloodGuiCol_ButtonHovered] = FloodColor(73, 73, 104, 255);
+    
+        Context.colors[FloodGuiCol_CheckboxActivated] = FloodColor(0.74f, 0.58f, 0.98f, 1.f);
     }
 }
 
