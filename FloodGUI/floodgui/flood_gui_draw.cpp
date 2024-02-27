@@ -448,13 +448,20 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
     return false;
 }
 
-bool FloodGui::Hotkey(const char* id, uint16_t key)
+bool FloodGui::Hotkey(const char* id, uint16_t key, bool global)
 {
+    // Todo:
+    // Drawing
+
+    // Functionality
+    //
     FloodKey k = (FloodKey)key;
-    if (Context.IO.KeyboardInputs[k].count && (Context.IO.KeyRepeatRate <= Context.IO.KeyboardInputs[k].ms.count()))
-    {
-        std::cout << "Key " << k << "  " << Context.IO.KeyboardInputs[k].ms.count()<<"\n";
-    }
+    if(!global && Context.ActiveDrawingWindow)
+        if (Context.IO.KeyboardInputs[k].count && FloodGui::Context.IO.KeyRepeatRate <= (Context.IO.KeyboardInputs[k].time.count() - Context.IO.KeyboardInputs[k].hotkey.count()))
+        {
+            Context.IO.KeyboardInputs[k].hotkey = Context.IO.KeyboardInputs[k].time;
+            return true;
+        }
     return false;
 }
 

@@ -36,7 +36,7 @@ namespace FloodGui {
 
 	extern inline bool Button(const char* id);
 	extern inline bool Checkbox(const char* id, bool* val);
-	extern inline bool Hotkey(const char* id, uint16_t key);
+	extern inline bool Hotkey(const char* id, uint16_t key, bool global = true);
 }
 class FloodDrawData {
 public:

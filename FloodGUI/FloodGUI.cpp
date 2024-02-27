@@ -36,6 +36,20 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
 		break;
 	}
+	case WM_SIZE:
+	{
+		if(!FloodGui::Context.Initalized)
+			break;
+
+		RECT hwndRect = { 0, 0, 0, 0 };
+		GetClientRect(hwnd, &hwndRect);
+		FloodGui::Context.Display.DisplaySize = FloodVector2{ static_cast<float>(hwndRect.right - hwndRect.left), static_cast<float>(hwndRect.bottom - hwndRect.top) };
+		d3dpp.BackBufferWidth = FloodGui::Context.Display.DisplaySize.x;
+		d3dpp.BackBufferHeight = FloodGui::Context.Display.DisplaySize.y;
+
+		//d3ddev->Reset(&d3dpp);
+		break;
+	}
 	case WM_DESTROY:
 	{
 		PostQuitMessage(0);
@@ -92,17 +106,21 @@ int main()
 		{
 			FloodGui::BeginWindow("Window 1");
 			
-			//FloodGui::Context.FindWindowByName("Window 1")->GetDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 255, 255, 255), 15, 15);
+			//FloodGui::Context.FindWindowByName("Window 1")->GetDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 255, 255, 255), 15, 9);
 
-			if (FloodGui::Button("Deez"))
-				std::cout << "Deez was pressed\n";
+			if (FloodGui::Button("Button"))
+				std::cout << "Button was pressed\n";
 
-			if (FloodGui::Checkbox("Deez2", &b))
-				std::cout << "Deez2 was pressed\n";
+			if (FloodGui::Checkbox("Checkbox", &b))
+				std::cout << "Checkbox was pressed\n";
 
-			FloodGui::Hotkey("T", FloodGuiKey_B);
+			if (FloodGui::Hotkey("B", FloodGuiKey_B)) {
+				std::cout << "B was switched\n";
+				b = !b;
+			}
 
 			FloodGui::EndWindow();
+
 		}
 		FloodGui::EndFrame();
 
