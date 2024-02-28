@@ -68,11 +68,10 @@ LRESULT CALLBACK FloodGuiWindowWinProcHandler(HWND hwnd, UINT msg, WPARAM wParam
 			if (wParam < 256) // Within ASCII range
 			{
 				// Submit key event
-				const FloodKey key = FloodGuiWinVirtualKeyToFloodGuiKey(vk);
 				const int scancode = (int)LOBYTE(HIWORD(lParam));
-				if (key != FloodGuiKey_None) {
+				if (FloodGuiWinVirtualKeyToFloodGuiKey(vk) != FloodGuiKey_None) {
 					// Send key event to IO
-					FloodGui::Context.IO.AddKeyEventDown(key, keydown);
+					FloodGui::Context.IO.AddKeyEventDown(vk, keydown);
 				}
 			}
 			break;

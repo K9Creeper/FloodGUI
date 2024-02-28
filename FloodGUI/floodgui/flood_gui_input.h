@@ -34,7 +34,7 @@ constexpr FloodKey FloodGuiWinVirtualKeyToFloodGuiKey(WPARAM wParam)
     case VK_NUMPAD5: return FloodGuiKey_Keypad5; case VK_NUMPAD6: return FloodGuiKey_Keypad6; case VK_NUMPAD7: return FloodGuiKey_Keypad7;
     case VK_NUMPAD8: return FloodGuiKey_Keypad8; case VK_NUMPAD9: return FloodGuiKey_Keypad9; case VK_DECIMAL: return FloodGuiKey_KeypadDecimal;
     case VK_DIVIDE: return FloodGuiKey_KeypadDivide; case VK_MULTIPLY: return FloodGuiKey_KeypadMultiply; case VK_SUBTRACT: return FloodGuiKey_KeypadSubtract;
-    case VK_ADD: return FloodGuiKey_KeypadAdd; case (VK_RETURN + 256): return FloodGuiKey_KeypadEnter;  case VK_LSHIFT: return FloodGuiKey_LeftShift;
+    case VK_ADD: return FloodGuiKey_KeypadAdd; case (VK_RETURN + 256): return FloodGuiKey_KeypadEnter;  case VK_LSHIFT: case 16: return FloodGuiKey_LeftShift;
     case VK_LCONTROL: return FloodGuiKey_LeftCtrl; case VK_LMENU: return FloodGuiKey_LeftAlt; case VK_LWIN: return FloodGuiKey_LeftSuper;
     case VK_RSHIFT: return FloodGuiKey_RightShift; case VK_RCONTROL: return FloodGuiKey_RightCtrl;  case VK_RMENU: return FloodGuiKey_RightAlt;
     case VK_RWIN: return FloodGuiKey_RightSuper; case VK_APPS: return FloodGuiKey_Menu; case '0': return FloodGuiKey_0; case '1': return FloodGuiKey_1;
@@ -53,33 +53,18 @@ constexpr FloodKey FloodGuiWinVirtualKeyToFloodGuiKey(WPARAM wParam)
     }
 }
 
-void FloodIO::AddKeyEventDown(FloodKey key, bool down)
+void FloodIO::AddKeyEventDown(uint16_t key, bool down)
 {
     if (FloodGui::Context.FrameStage != FloodRenderStage_FrameRenderEnd)
         return;
-    const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()
-        );
-    bool exists = KeyboardInputs.find(key) != KeyboardInputs.end();
-
-    if (!exists)
-        KeyboardInputs[key] = FloodKeyInput{ now };
-
-    const double ms = abs(KeyboardInputs[key].time.count() - now.count());
-    FloodKeyInput& input = KeyboardInputs[key];
-    if (down) {
-        if (input.count < 2 && KeyRepeatDelay <= ms) {
-            input.ms = abs(input.time - now);
-            input.time = now;
-            input.count++;
-        }
-        else if (!((KeyRepeatRate - 5.f) >= ms && (KeyRepeatRate + 5.f) <= ms) && (KeyRepeatDelay) <= ms) {
-            input.ms = abs(input.time - now);
-            input.time = now;
-            input.count = 1;
-        }
+    FloodKey fKey = FloodGuiWinVirtualKeyToFloodGuiKey(key);
+    if (KeyboardInputs.find(fKey) == KeyboardInputs.end())
+        KeyboardInputs[fKey] = FloodKeyInput{ key, down };
+    else {
+        KeyboardInputs[fKey].real_key = key;
+        KeyboardInputs[fKey].raw_down = down;
     }
-}
+ }
 
 void FloodIO::AddMouseMoveEvent(FloodVector2 mouse_pos)
 {

@@ -36,6 +36,7 @@ namespace FloodGui {
 
 	extern inline bool Button(const char* id);
 	extern inline bool Checkbox(const char* id, bool* val);
+	//extern inline bool TextInput(const char* id, const char* text/* Make sure this has allocated atleast 64 chars*/, const char* buffer);
 	extern inline bool Hotkey(const char* id, uint16_t key, bool global = true);
 }
 class FloodDrawData {
@@ -101,7 +102,8 @@ public:
 	void AddRect(const FloodVector2& min, const FloodVector2& max, FloodColor col, float thickness = 1.f);
 	void AddPolyLine(const std::vector<FloodVector2> points, FloodColor col, float thickness = 1.f);
 	void AddRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col);
-	
+	void AddTriangleFilled(const FloodVector2& a, const FloodVector2& b, const FloodVector2& c, FloodColor col);
+
 	void AddText(const char* text, const FloodVector2& position, FloodColor col, float font_size, float spacing=16);
 
 	void Clear()
@@ -115,7 +117,9 @@ public:
 	}
 private:
 	void AllocRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col);
+	void AllocTriFilled(const FloodVector2& a, const FloodVector2& b, const FloodVector2& c, FloodColor col);
 	void AllocChar(char text, const FloodVector2& position, FloodColor col, float font_size);
+
 
 	void ReserveGeo(const int& index_count, const int& vertex_count);
 };

@@ -2,6 +2,7 @@
 #include "flood_gui.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <iostream>
 
 
@@ -108,6 +109,13 @@ FloodVector2 CalcTextSize(const char* text, const float& size, const float& spac
 {
     return FloodVector2(static_cast<int>(strlen(text)) * (size + spacing), size*1.3f);
 }
+bool ChangeCursor(LPCWSTR cursor)
+{
+    if (HCURSOR hCursor = LoadCursor(NULL, cursor)) {
+        return SetCursor(hCursor);
+    }
+    return false;
+}
 //                                  //
 //  Global Flood Gui D3D Functions  //
 //                                  //
@@ -146,7 +154,6 @@ void FloodGuiD3D9Shutdown() {
 void FloodGuiD3D9NewFrame() {
     // This is practically unused
     //
-
 }
 
 void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
@@ -383,7 +390,20 @@ void FloodGui::BeginWindow(const char* windowName)
             }
             else if (window->WindowIsActive() && window == hovered)
             {
+                
                 relative_dst1 = FloodVector2(0, 0);
+            }
+            if (window == hovered) {
+                if (FindPoint(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodGui::Context.IO.mouse_pos))
+                {
+                    ChangeCursor(IDC_SIZENWSE);
+                }
+                else {
+                    ChangeCursor(IDC_ARROW);
+                }
+            }
+            else {
+                ChangeCursor(IDC_ARROW);
             }
         }
 
@@ -406,7 +426,7 @@ void FloodGui::BeginWindow(const char* windowName)
     static const int font_size = 7;
     static const int spacing = 7;
     DrawList->AddRectFilled(window->GetBoundingContentMin(), window->GetBoundingContentMax() , Context.colors[FloodGuiCol_WinBkg]);
-    DrawList->AddRectFilled(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodColor());
+    DrawList->AddTriangleFilled(window->GetBoundingContentMax() - FloodVector2(0, 20.f), window->GetBoundingContentMax() - FloodVector2(20.f, 0), window->GetBoundingContentMax(), (FindPoint(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodGui::Context.IO.mouse_pos) ? Context.colors[FloodGuiCol_ResizeActivated] : Context.colors[FloodGuiCol_Resize]));
     DrawList->AddRectFilled(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), window->WindowIsActive() ? Context.colors[FloodGuiCol_WinTitleBarActive] : Context.colors[FloodGuiCol_WinTitleBar]);
     DrawList->AddText(windowName, window->GetBoundingTitleMin() + FloodVector2(font_size / .4f, font_size * (font_size / 3.1f)), Context.colors[FloodGuiCol_Text], font_size, spacing);
 }
@@ -424,12 +444,12 @@ bool FloodGui::Button(const char* id) {
     for (int i = 0; i < win->CurrentContentCount(); i++)
         offset = offset + FloodVector2{0, win->content[i].second+ offset.y};
     FloodVector2 textSize = CalcTextSize(id, 7, 7);
-    FloodVector2 innerPadding = textSize/1.4f;
+    FloodVector2 innerPadding = FloodVector2(textSize.x/5.f, textSize.y);
     FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
     FloodVector2 boxMax = boxMin + textSize + innerPadding;
     const bool isHovering = win->WindowIsActive() && FindPoint(boxMin, boxMax, Context.IO.mouse_pos);
     win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
-    win->GetDrawList()->AddText(id, boxMin + FloodVector2(0, textSize.y) + innerPadding / 2.f, Context.colors[FloodGuiCol_Text], 7, 7);
+    win->GetDrawList()->AddText(id, boxMin + FloodVector2(0, textSize.y) + innerPadding/3.f, Context.colors[FloodGuiCol_Text], 7, 7);
     win->content.push_back({ id, boxMax.y - boxMin.y });
     static bool pass = true;
     if (pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
@@ -459,7 +479,7 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
     win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
     if (isToggled)
         win->GetDrawList()->AddRectFilled(boxMin+ (FloodVector2(20, 20)/5.f), boxMax-(FloodVector2(20, 20) / 5.f), Context.colors[FloodGuiCol_CheckboxActivated]);
-    win->GetDrawList()->AddText(id, boxMax + FloodVector2{textSize.x / 3.f, -textSize.y/2.f}- (FloodVector2(20, 20) / 7.5f), Context.colors[FloodGuiCol_Text], 6, 6);
+    win->GetDrawList()->AddText(id, boxMax + FloodVector2{textSize.x * .2f, -textSize.y/2.f}- (FloodVector2(20, 20) / 7.5f), Context.colors[FloodGuiCol_Text], 6, 6);
     
     win->content.push_back({ id, boxMax.y - boxMin.y });
     static bool pass = true;
@@ -483,13 +503,7 @@ bool FloodGui::Hotkey(const char* id, uint16_t key, bool global)
 
     // Functionality
     //
-    FloodKey k = (FloodKey)key;
-    if(!global && Context.ActiveDrawingWindow)
-        if (Context.IO.KeyboardInputs[k].count && FloodGui::Context.IO.KeyRepeatRate <= (Context.IO.KeyboardInputs[k].time.count() - Context.IO.KeyboardInputs[k].hotkey.count()))
-        {
-            Context.IO.KeyboardInputs[k].hotkey = Context.IO.KeyboardInputs[k].time;
-            return true;
-        }
+    
     return false;
 }
 
@@ -530,6 +544,29 @@ void FloodDrawList::AllocRectFilled(const FloodVector2& min, const FloodVector2&
     VertexWrite += 4;
     VertexCurrentIdx += 4;
     IndexWrite += 6;
+}
+void FloodDrawList::AddTriangleFilled(const FloodVector2& a, const FloodVector2& b, const FloodVector2& c, FloodColor col) {
+    static const int index_count = 4, vertex_count = 3;
+    Elements.push_back(FloodDrawMaterial{ {a,b,c},  col, 0.f, index_count, vertex_count });
+    ReserveGeo(index_count, vertex_count);
+    AllocTriFilled(a, b, c, col);
+}
+void FloodDrawList::AllocTriFilled(const FloodVector2& a, const FloodVector2& b, const FloodVector2& c, FloodColor col)
+{
+    FloodVector2 uv(0.f, 0.f);
+    unsigned int color = ColorToUint32(col);
+    FloodDrawIndex idx = (FloodDrawIndex)VertexCurrentIdx;
+    IndexWrite[0] = idx; 
+    IndexWrite[1] = (FloodDrawIndex)(idx + 1); 
+    IndexWrite[2] = (FloodDrawIndex)(idx + 2);
+    IndexWrite[3] = (FloodDrawIndex)(idx);
+
+    VertexWrite[0].position = a; VertexWrite[0].uv = uv; VertexWrite[0].col = color;
+    VertexWrite[1].position = b; VertexWrite[1].uv = uv; VertexWrite[1].col = color;
+    VertexWrite[2].position = c; VertexWrite[2].uv = uv; VertexWrite[2].col = color;
+    VertexWrite += 3;
+    VertexCurrentIdx += 3;
+    IndexWrite += 4;
 }
 void FloodDrawList::AddLine(const FloodVector2& p1, const FloodVector2& p2, FloodColor col, float thickness)
 {

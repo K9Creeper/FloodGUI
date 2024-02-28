@@ -9,7 +9,7 @@
 #include "floodgui/flood_gui_win.h"
 #include "floodgui/flood_gui_math.h"
 
-FloodColor clearColor(.5f, .5f, .5f, 1.f);
+FloodColor clearColor(.8f, .8f, .8f, 1.f);
 
 LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
 LPDIRECT3DDEVICE9 d3ddev;
@@ -94,6 +94,7 @@ int main()
 
 	D3DCOLOR clear_col_dx = ColorToUint32(clearColor);
 	bool b = false;
+
 	while (running) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessage(&msg); if (msg.message == WM_QUIT) {CleanupDeviceD3D(); running = false; } }
 		if (!running)
@@ -106,23 +107,17 @@ int main()
 		{
 			FloodGui::BeginWindow("Window 1");
 			
-			//FloodGui::Context.FindWindowByName("Window 1")->GetDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 255, 255, 255), 15, 9);
 
-			if (FloodGui::Button("Button"))
-				std::cout << "Button was pressed\n";
+			if (FloodGui::Button("Say Hello"))
+				std::cout << "Hello From Button!\n";
 
-			if (FloodGui::Checkbox("Checkbox", &b))
-				std::cout << "Checkbox was pressed\n";
+			if (FloodGui::Checkbox("Show Alphabet", &b))
+				std::cout << "Checkbox was pressed!\n";
 
 			if (b)
 			{
-				std::cout << "b is true\n";
-			}
-
-			if (FloodGui::Hotkey("B", FloodGuiKey_B)) {
-				std::cout << "B was switched\n";
-				b = !b;
-			}
+				FloodGui::Context.FindWindowByName("Window 1")->GetDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 255, 255, 255), 15, 9);
+			}			
 
 			FloodGui::EndWindow();
 

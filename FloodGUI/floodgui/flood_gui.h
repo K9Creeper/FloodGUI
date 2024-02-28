@@ -113,10 +113,8 @@ enum FloodMouseButton : uint16_t {
 };
 
 struct FloodKeyInput {
-	std::chrono::milliseconds time{}; // of last click
-	std::chrono::milliseconds ms{}; // since last clicked
-    std::chrono::milliseconds hotkey{}; // since last click (hotkey)
-	int count = 0; // if pressed
+    uint16_t real_key = -1;
+    bool raw_down = false; // This will be if it is down
 };
 
 struct FloodGuiD3D9Data;
@@ -145,7 +143,7 @@ struct FloodIO // Input / Output
 	float KeyRepeatDelay = 275; // ms
 	float KeyRepeatRate = 50; // ms
 	std::unordered_map< FloodKey, FloodKeyInput > KeyboardInputs{};
-	void AddKeyEventDown(FloodKey key, bool keydown);
+	void AddKeyEventDown(uint16_t key, bool down);
 };
 
 class FloodDisplay {
@@ -178,7 +176,9 @@ enum FloodGuiCol : uint16_t {
     FloodGuiCol_Text,
     FloodGuiCol_Button,
     FloodGuiCol_ButtonHovered,
-    FloodGuiCol_CheckboxActivated
+    FloodGuiCol_CheckboxActivated,
+    FloodGuiCol_Resize,
+    FloodGuiCol_ResizeActivated
 };
 
 class FloodDrawData;
@@ -220,6 +220,9 @@ namespace FloodGui {
         Context.colors[FloodGuiCol_ButtonHovered] = FloodColor(73, 73, 104, 255);
     
         Context.colors[FloodGuiCol_CheckboxActivated] = FloodColor(0.74f, 0.58f, 0.98f, 1.f);
+    
+        Context.colors[FloodGuiCol_Resize] = FloodColor(0.2f, 0.2f, 0.23f, 1.0f);
+        Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.2f, 0.2f, 0.28f, 1.0f);
     }
 }
 
