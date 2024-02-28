@@ -60,8 +60,6 @@ struct FloodDrawMaterial {
 
 	int index_count; 
 	int vertex_count; // equal to points size
-
-	LPDIRECT3DTEXTURE9 texture; // for like text
 };
 
 typedef unsigned short FloodDrawIndex;
@@ -136,7 +134,7 @@ public:
 		this->sName = sName;
 		this->size = size;
 		this->position = position;
-		this->titlebar_size = FloodVector2(size.x, titlebar_size);
+		this->titlebar_size = FloodVector2(0, titlebar_size);
 	}
 
 	//						id			ver size
@@ -156,7 +154,7 @@ public:
 	FloodVector2 GetFullBoundingMax() { return position+size+ FloodVector2{ 0, titlebar_size.y }; }
 
 	FloodVector2 GetBoundingTitleMin() { return position; }
-	FloodVector2 GetBoundingTitleMax() { return position + titlebar_size; }
+	FloodVector2 GetBoundingTitleMax() { return position + titlebar_size + FloodVector2{ size.x, 0 }; }
 
 	FloodVector2 GetBoundingContentMin() { return position + FloodVector2{0, titlebar_size.y}; }
 	FloodVector2 GetBoundingContentMax() { return position + size + FloodVector2{ 0, titlebar_size.y }; }
@@ -166,4 +164,5 @@ public:
 	uint16_t GetZIndex() { return zIndex; }
 	void SetWindowActive(bool s=true) { this->isActive = s; if(s)SetZIndex(0);  }
 	void MoveWindow(const FloodVector2& newPos) { position = newPos; }
+	void ResizeWindow(const FloodVector2& newSize) { size = newSize; }
 };

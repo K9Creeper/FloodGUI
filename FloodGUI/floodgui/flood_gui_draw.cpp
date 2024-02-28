@@ -102,6 +102,7 @@ void FocusNewWindow(FloodWindow* target)
     }
     // Ok, now this is where we can now set this window as active
     target->SetWindowActive(true);
+    FloodGui::Context.ActiveWindow = target;
 }
 FloodVector2 CalcTextSize(const char* text, const float& size, const float& spacing)
 {
@@ -353,7 +354,7 @@ void FloodGui::BeginWindow(const char* windowName)
     // Create a new window if it doesnt exist
     if (!windowExists)
     {
-        window = new FloodWindow(windowName, { 600, 600 });
+        window = new FloodWindow(windowName, { 400, 400 });
         window->SetZIndex(context.ActiveDrawingWindowZIndex++);
         context.Windows[windowName] = window;
     }
@@ -362,25 +363,52 @@ void FloodGui::BeginWindow(const char* windowName)
     context.ActiveDrawingWindow = window;
 
     FloodDrawList* DrawList = window->GetDrawList();  window->Clear();
+    // Window Interaction
     {
-        static FloodVector2 relative_dst;
-        if (window == get_window_hovering() && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
-            FocusNewWindow(window);
-            if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos)) {
-                const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - FloodGui::Context.IO.pmouse_pos;
-                window->MoveWindow(relative_dst+dst);
+        FloodWindow* hovered = get_window_hovering();
+        static FloodVector2 relative_dst1;
+
+        // Window Resizing
+        {
+            if (window->WindowIsActive() && window == hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+            {
+                if (FindPoint(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodGui::Context.IO.mouse_pos)) {
+                    const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - relative_dst1;
+                    if (relative_dst1.x != 0 && relative_dst1.y != 0)
+                    {
+                        window->ResizeWindow((window->GetBoundingContentMax() - window->GetBoundingContentMin()) + dst);
+                    }
+                    relative_dst1 = FloodGui::Context.IO.mouse_pos;
+                }
+            }
+            else if (window->WindowIsActive() && window == hovered)
+            {
+                relative_dst1 = FloodVector2(0, 0);
             }
         }
-        else if (window == get_window_hovering())
+
+        static FloodVector2 relative_dst2;
+        if (window == hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
+            // Window Focusing
+            FocusNewWindow(window);
+            // Window Dragging
+            if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos)) {
+                const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - FloodGui::Context.IO.pmouse_pos;
+                window->MoveWindow(relative_dst2 +dst);
+            }
+        }
+        else if (window == hovered)
         {
-            relative_dst = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
+            // Get realative distance to top left on first click
+            relative_dst2 = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
         }
     }
     static const int font_size = 7;
     static const int spacing = 7;
-    DrawList->AddRectFilled(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), window->WindowIsActive() ? Context.colors[FloodGuiCol_WinTitleBarActive] :Context.colors[FloodGuiCol_WinTitleBar]);
-    DrawList->AddText(windowName, window->GetBoundingTitleMin() + FloodVector2(font_size / .4f, font_size* (font_size/3.1f)), Context.colors[FloodGuiCol_Text], font_size, spacing);
     DrawList->AddRectFilled(window->GetBoundingContentMin(), window->GetBoundingContentMax() , Context.colors[FloodGuiCol_WinBkg]);
+    DrawList->AddRectFilled(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodColor());
+    DrawList->AddRectFilled(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), window->WindowIsActive() ? Context.colors[FloodGuiCol_WinTitleBarActive] : Context.colors[FloodGuiCol_WinTitleBar]);
+    DrawList->AddText(windowName, window->GetBoundingTitleMin() + FloodVector2(font_size / .4f, font_size * (font_size / 3.1f)), Context.colors[FloodGuiCol_Text], font_size, spacing);
 }
 void FloodGui::EndWindow() {
     FloodContext& context = FloodGui::Context;

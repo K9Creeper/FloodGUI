@@ -114,6 +114,11 @@ int main()
 			if (FloodGui::Checkbox("Checkbox", &b))
 				std::cout << "Checkbox was pressed\n";
 
+			if (b)
+			{
+				std::cout << "b is true\n";
+			}
+
 			if (FloodGui::Hotkey("B", FloodGuiKey_B)) {
 				std::cout << "B was switched\n";
 				b = !b;
