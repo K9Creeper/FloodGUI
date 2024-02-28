@@ -586,8 +586,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
     const float height = font_size * 1.3f;
     switch (text)
     {
-    case 'A':
     case 'a':
+    case 'A':
     {
         const FloodVector2& top = FloodVector2(position) + FloodVector2(width / 2, -height);
         // Diagnals
@@ -598,8 +598,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(FloodVector2(position)+FloodVector2(width*.2,-height/ 2.6f), FloodVector2(position) + FloodVector2(width- width * .2, -height / 2.6f),  col, 1);
         break;
     }
-    case 'B':
     case 'b':
+    case 'B':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 1.7f);
@@ -620,8 +620,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top + FloodVector2{ width - width * .19f, 0 }, middle + FloodVector2{ width - width * .19f, 0 }, col, 1);
         break;
     }
-    case 'C':
     case 'c':
+    case 'C':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
 
@@ -630,8 +630,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top, top + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'D':
     case 'd':
+    case 'D':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 middle = FloodVector2(position) + FloodVector2(width, -height / 2.f);
@@ -644,8 +644,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top + FloodVector2(width * .8, 0), middle, col, 1);
         break;
     }
-    case 'E':
     case 'e':
+    case 'E':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
@@ -656,8 +656,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top, top + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'F':
     case 'f':
+    case 'F':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
@@ -669,8 +669,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top, top + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'G':
     case 'g':
+    case 'G':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
@@ -690,8 +690,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(FloodVector2(position) + FloodVector2(width, 0), middle + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'H':
     case 'h':
+    case 'H':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
@@ -700,8 +700,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(middle, middle + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'I':
     case 'i':
+    case 'I':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
@@ -710,8 +710,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top, top + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'J':
     case 'j':
+    case 'J':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         AddLine(top + FloodVector2(width*.3f, 0), top + FloodVector2(width, 0), col, 1);
@@ -720,8 +720,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(FloodVector2(position) + FloodVector2(width * .2f, 0), FloodVector2(position) + FloodVector2(width * .2f, -height*.35f), col, 1);
         break;
     }
-    case 'K':
     case 'k':
+    case 'K':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
@@ -730,8 +730,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(middle, FloodVector2(position) + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'L':
     case 'l':
+    case 'L':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
 
@@ -739,8 +739,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'M':
     case 'm':
+    case 'M':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, -height/2.5f);
@@ -750,8 +750,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top + FloodVector2(width, 0), FloodVector2(position)+ FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'N':
     case 'n':
+    case 'N':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         AddLine(position, top, col, 1);
@@ -759,8 +759,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top + FloodVector2(width, 0), FloodVector2(position) + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'O':
     case 'o':
+    case 'O':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
 
@@ -770,8 +770,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(FloodVector2(position) + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'P':
     case 'p':
+    case 'P':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
@@ -782,8 +782,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
 
         break;
     }
-    case 'Q':
     case 'q':
+    case 'Q':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, -height / 2.5f);
@@ -794,8 +794,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(FloodVector2(position) + FloodVector2(width, 0), vmiddle, col, 1);
         break;
     }
-    case 'R':
     case 'r':
+    case 'R':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
@@ -806,8 +806,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(middle + FloodVector2(width*.3f,0), FloodVector2(position) + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'S':
     case 's':
+    case 'S':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
@@ -820,8 +820,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top, top + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'T':
     case 't':
+    case 'T':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
@@ -829,8 +829,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top, top + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'U':
     case 'u':
+    case 'U':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
 
@@ -839,8 +839,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(FloodVector2(position) + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'V':
     case 'v':
+    case 'V':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
@@ -848,8 +848,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(vmiddle, top + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'W':
     case 'w':
+    case 'W':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, -height / 2.5f);
@@ -859,16 +859,16 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top + FloodVector2(width, 0), FloodVector2(position) + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 'X':
     case 'x':
+    case 'X':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         AddLine(top, FloodVector2(position) + FloodVector2(width, 0), col, 1);
         AddLine(top + FloodVector2(width, 0), FloodVector2(position) , col, 1);
         break;
     }
-    case 'Y':
     case 'y':
+    case 'Y':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, -height/2.f);
@@ -878,8 +878,8 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(vmiddle, vmiddle2, col, 1);
         break;
     }
-    case 'Z':
     case 'z':
+    case 'Z':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
         AddLine(top + FloodVector2(width, 0), top, col, 1);
