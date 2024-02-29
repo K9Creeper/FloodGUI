@@ -370,7 +370,7 @@ void FloodGui::Render()
     drawData->DrawLists.push_back(FloodGui::Context.DrawData->Foreground);
     for (const auto& [name, window] : SortWindows()) { drawData->DrawLists.insert(drawData->DrawLists.begin(), (window->GetDrawList())); }
     if (FloodGui::Context.DrawData->Background)
-    drawData->DrawLists.push_back(FloodGui::Context.DrawData->Background);
+    drawData->DrawLists.insert(drawData->DrawLists.begin(), FloodGui::Context.DrawData->Background);
 }
 
 void FloodGui::BeginWindow(const char* windowName)
