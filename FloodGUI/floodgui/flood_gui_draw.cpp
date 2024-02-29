@@ -382,8 +382,10 @@ void FloodGui::BeginWindow(const char* windowName)
     // Window Interaction
     {
         FloodWindow* hovered = get_window_hovering();
+        static bool PrevMouseClick;
         static FloodVector2 relative_dst1;
-
+        bool onmouseUp = PrevMouseClick && !FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
+        bool onmouseDown = !PrevMouseClick && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
         // Window Resizing
         {
             if (window->WindowIsActive() && window == hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])
@@ -397,9 +399,8 @@ void FloodGui::BeginWindow(const char* windowName)
                     relative_dst1 = FloodGui::Context.IO.mouse_pos;
                 }
             }
-            else if (window->WindowIsActive() && window == hovered)
+            else if (window->WindowIsActive() && window == hovered && onmouseUp)
             {
-                
                 relative_dst1 = FloodVector2(0, 0);
             }
             if (window == hovered) {
@@ -417,7 +418,16 @@ void FloodGui::BeginWindow(const char* windowName)
         }
 
         static FloodVector2 relative_dst2;
-        if (window == hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
+        if (window == hovered && onmouseDown)
+        {
+            // Get realative distance to top left on first click
+            relative_dst2 = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
+        }
+        if ((window != hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) || onmouseUp)
+        {
+            relative_dst2.x = 1; // invalidate
+        }
+        if (relative_dst2.x <= 0 && window == hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
             // Window Focusing
             FocusNewWindow(window);
             // Window Dragging
@@ -426,11 +436,8 @@ void FloodGui::BeginWindow(const char* windowName)
                 window->MoveWindow(relative_dst2 +dst);
             }
         }
-        else if (window == hovered)
-        {
-            // Get realative distance to top left on first click
-            relative_dst2 = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
-        }
+
+        PrevMouseClick = FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
     }
     static const int font_size = 7;
     static const int spacing = 7;
