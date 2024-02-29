@@ -45,8 +45,8 @@ std::vector<std::pair<const char*, FloodWindow*>>SortWindows() {
         sort = false;
         for (int16_t i = out.size() - 1; i > 0; i--)
         {
-            const std::pair<const char*, FloodWindow*> pair1 = out[i];
-            const std::pair<const char*, FloodWindow*> pair2 = out[i - 1];
+            const std::pair<const char*, FloodWindow*>& pair1 = out[i];
+            const std::pair<const char*, FloodWindow*>& pair2 = out[i - 1];
 
             const uint16_t& z1 = pair1.second->GetZIndex();
             const uint16_t& z2 = pair2.second->GetZIndex();
@@ -54,7 +54,7 @@ std::vector<std::pair<const char*, FloodWindow*>>SortWindows() {
             if (z1 > z2)
             {
                 out[i] = pair2;
-                out[i - 1] = pair1;
+                out[i-1] = pair1;
                 sort = true;
             }
         }
@@ -111,7 +111,9 @@ FloodVector2 CalcTextSize(const char* text, const float& size, const float& spac
 }
 bool ChangeCursor(LPCWSTR cursor)
 {
+    // We like, load the cursor img / data--possibly can be optimized?
     if (HCURSOR hCursor = LoadCursor(NULL, cursor)) {
+        // Then we set it...
         return SetCursor(hCursor);
     }
     return false;
@@ -301,12 +303,18 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
     for (int n = 0; n < drawData->DrawLists.size(); n++)
     {
         const FloodDrawList* cmd_list = drawData->DrawLists[n];
+        const FloodVector2& minRect = cmd_list->parent->GetFullBoundingMin();
+        const FloodVector2& maxRect = cmd_list->parent->GetFullBoundingMax();
         int vtx_offset = 0;
         int idx_offset = 0;
 
+        const RECT& r = { (LONG)minRect.x, (LONG)minRect.y, (LONG)maxRect.x, (LONG)maxRect.y };
         // We are looping through practically every cmd to the gpu
         for (int i = 0; i < cmd_list->Elements.size(); i++) {
             const FloodDrawMaterial& material = cmd_list->Elements[i];
+            // This is a test clip
+            
+            backend_data->pd3dDevice->SetScissorRect(&r);
             // This is where we draw our vertexs and points
             backend_data->pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vtx_offset + global_vtx_offset, 0, (UINT)cmd_list->VertexBuffer.size(), idx_offset + global_idx_offset, material.index_count / 3);
             // Make sure to increase the index offsets, or we are drawing points in the wrong order

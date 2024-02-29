@@ -71,7 +71,6 @@ public:
 	}
 };
 
-
 class FloodVector3 {
 public:
 	float x, y, z;

@@ -78,6 +78,8 @@ public:
 	std::vector< FloodDrawVertex > VertexBuffer;
 	std::vector< FloodDrawIndex > IndexBuffer;
 
+	FloodWindow* parent = nullptr;
+
 	FloodDrawIndex* IndexWrite;
 	FloodDrawVertex* VertexWrite;
 
@@ -139,6 +141,7 @@ public:
 		this->size = size;
 		this->position = position;
 		this->titlebar_size = FloodVector2(0, titlebar_size);
+		this->DrawList.parent = this;
 	}
 
 	//						id			ver size
