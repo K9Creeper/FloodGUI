@@ -457,17 +457,20 @@ bool FloodGui::Button(const char* id) {
     FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
     FloodVector2 boxMax = boxMin + textSize + innerPadding;
     const bool isHovering = win->WindowIsActive() && FindPoint(boxMin, boxMax, Context.IO.mouse_pos);
-    win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
+    static bool pass = true;
+
+    win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering && pass ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
     win->GetDrawList()->AddText(id, boxMin + FloodVector2(0, textSize.y) + innerPadding/3.f, Context.colors[FloodGuiCol_Text], 7, 7);
     win->content.push_back({ id, boxMax.y - boxMin.y });
-    static bool pass = true;
     if (pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
     {
         pass = false;
         return true;
     }
-    else if(!Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+    else if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse])
         pass = true;
+    else if(Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+        pass = false;
         
     return false;
 }
@@ -485,13 +488,14 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
 
     const bool isHovering = win->WindowIsActive() && FindPoint(boxMin, boxMax, Context.IO.mouse_pos);
     const bool isToggled = (val && *val);
-    win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
+    static bool pass = true;
+
+    win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering && pass ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
     if (isToggled)
         win->GetDrawList()->AddRectFilled(boxMin+ (FloodVector2(20, 20)/5.f), boxMax-(FloodVector2(20, 20) / 5.f), Context.colors[FloodGuiCol_CheckboxActivated]);
     win->GetDrawList()->AddText(id, boxMax + FloodVector2{textSize.x * .2f, -textSize.y/2.f}- (FloodVector2(20, 20) / 7.5f), Context.colors[FloodGuiCol_Text], 6, 6);
     
     win->content.push_back({ id, boxMax.y - boxMin.y });
-    static bool pass = true;
     if (pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
     {
         if (val)
@@ -501,6 +505,8 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
     }
     else if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse])
         pass = true;
+    else if(Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+        pass = false;
 
     return false;
 }
