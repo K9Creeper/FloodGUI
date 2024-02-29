@@ -151,13 +151,13 @@ public:
 	FloodDisplay(){ }
 	FloodVector2	DisplaySize;
 	FloodVector2	DisplayPosition;
-    D3DMATRIX matrix_project() {
+    constexpr D3DMATRIX matrix_project() const {
         // Orthographic projection matrix
         // I HAVE NO IDEA WHAT IM DOING!!!!
-        float L = DisplayPosition.x + 0.5f;
-        float R = DisplayPosition.x + DisplaySize.x + 0.5f;
-        float T = DisplayPosition.y + 0.5f;
-        float B = DisplayPosition.y + DisplaySize.y + 0.5f;
+        const float L = DisplayPosition.x + 0.5f;
+        const float R = DisplayPosition.x + DisplaySize.x + 0.5f;
+        const float T = DisplayPosition.y + 0.5f;
+        const float B = DisplayPosition.y + DisplaySize.y + 0.5f;
 
         return { { {
             2.0f / (R - L),   0.0f,         0.0f,  0.0f,
@@ -198,7 +198,7 @@ public:
 
     FloodWindow* ActiveWindow = nullptr;
     FloodWindow* ActiveDrawingWindow = nullptr;
-    int ActiveDrawingWindowZIndex = 0;
+    int ActiveDrawingWindowZIndex = 0; // Try not to reset this...
 
     std::unordered_map<FloodGuiCol, FloodColor>colors{};
 };

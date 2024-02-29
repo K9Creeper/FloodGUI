@@ -154,6 +154,7 @@ void FloodGuiD3D9Shutdown() {
 void FloodGuiD3D9NewFrame() {
     // This is practically unused
     //
+
 }
 
 void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
