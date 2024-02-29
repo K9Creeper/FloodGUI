@@ -94,7 +94,7 @@ int main()
 
 	D3DCOLOR clear_col_dx = clearColor.ToU32();
 	bool b = false;
-
+	bool b2 = false;
 	while (running) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessage(&msg); if (msg.message == WM_QUIT) {CleanupDeviceD3D(); running = false; } }
 		if (!running)
@@ -108,17 +108,24 @@ int main()
 			FloodGui::BeginWindow("Window 1");
 			
 
-			if (FloodGui::Button("Say Hello"))
+			if (FloodGui::Button("Say Hello and Toggle")) {
 				std::cout << "Hello From Button!\n";
-
+				b2 = !b2;
+			}
 			if (FloodGui::Checkbox("Show Alphabet", &b))
 				std::cout << "Checkbox was pressed!\n";
 
 			if (b)
 			{
+				// This is an example of using the Foreground Draw List
 				FloodGui::Context.GetForegroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 0, 0, 255), 15, 9);
 			}			
-			
+
+			if (b2)
+			{
+				// This is an example of using the Background Draw List
+				FloodGui::Context.GetBackgroundDrawList()->AddText("This is the background draw list", FloodVector2(200, 550), FloodColor(255, 255, 0, 255), 15, 9);
+			}
 			FloodGui::EndWindow();
 
 		}
