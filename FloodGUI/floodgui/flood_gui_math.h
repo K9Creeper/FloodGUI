@@ -194,6 +194,10 @@ public:
 	FloodColor() : r{ 0 }, g{ 0 }, b{ 0 }, a{ 255 } {};
 	FloodColor(float r, float g, float b, float a = 1.f) { this->r = static_cast<int>(r * 255.f); this->g = static_cast<int>(g * 255.f); this->b = static_cast<int>(b * 255.f); this->a = static_cast<int>(a * 255.f);}
 	FloodColor(int r, int g, int b, int a){ this->r = r; this->g = g; this->b = b; this->a = a; }
+	constexpr unsigned int ToU32()const
+	{
+		return ((BYTE(this->a) << 24) + (BYTE(this->r) << 16) + (BYTE(this->g) << 8) + BYTE(this->b));
+	}
 };
 
 constexpr bool FindPoint(const FloodVector2& min, const FloodVector2& max, const FloodVector2& point)

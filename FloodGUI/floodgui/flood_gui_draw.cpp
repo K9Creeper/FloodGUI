@@ -534,7 +534,7 @@ void FloodDrawList::AllocRectFilled(const FloodVector2& min, const FloodVector2&
     FloodVector2 d(min.x, max.y);
     FloodVector2 uv(0.f, 0.f);
     FloodDrawIndex idx = (FloodDrawIndex)VertexCurrentIdx;
-    unsigned int color = ColorToUint32(col);
+    unsigned int color = col.ToU32();
     IndexWrite[0] = idx; IndexWrite[1] = (FloodDrawIndex)(idx + 1); IndexWrite[2] = (FloodDrawIndex)(idx + 2);
     IndexWrite[3] = idx; IndexWrite[4] = (FloodDrawIndex)(idx + 2); IndexWrite[5] = (FloodDrawIndex)(idx + 3);
     VertexWrite[0].position = min; VertexWrite[0].uv = uv; VertexWrite[0].col = color;
@@ -554,7 +554,7 @@ void FloodDrawList::AddTriangleFilled(const FloodVector2& a, const FloodVector2&
 void FloodDrawList::AllocTriFilled(const FloodVector2& a, const FloodVector2& b, const FloodVector2& c, FloodColor col)
 {
     FloodVector2 uv(0.f, 0.f);
-    unsigned int color = ColorToUint32(col);
+    unsigned int color = col.ToU32();
     FloodDrawIndex idx = (FloodDrawIndex)VertexCurrentIdx;
     IndexWrite[0] = idx; 
     IndexWrite[1] = (FloodDrawIndex)(idx + 1); 
@@ -1018,7 +1018,7 @@ void FloodDrawList::AddPolyLine(const std::vector<FloodVector2> points, FloodCol
     
     ReserveGeo(idx_count, vtx_count);
     FloodVector2 uv(0.f, 0.f);
-    unsigned int color = ColorToUint32(col);
+    unsigned int color = col.ToU32();
     for (int i1 = 0; i1 < nPoints; i1++)
     {
         const int i2 = (i1 + 1) == nPoints ? 0 : i1 + 1;

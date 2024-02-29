@@ -92,7 +92,7 @@ int main()
 
 	std::cout << "Initalized Flood\n";
 
-	D3DCOLOR clear_col_dx = ColorToUint32(clearColor);
+	D3DCOLOR clear_col_dx = clearColor.ToU32();
 	bool b = false;
 
 	while (running) {

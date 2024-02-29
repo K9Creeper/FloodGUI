@@ -222,15 +222,6 @@ namespace FloodGui {
         Context.colors[FloodGuiCol_CheckboxActivated] = FloodColor(0.74f, 0.58f, 0.98f, 1.f);
     
         Context.colors[FloodGuiCol_Resize] = FloodColor(0.2f, 0.2f, 0.23f, 1.0f);
-        Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.2f, 0.2f, 0.28f, 1.0f);
+        Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.25f, 0.25f, 0.38f, 1.0f);
     }
-}
-
-constexpr unsigned int ColorToUint32(const FloodColor& color)
-{
-    return
-        ((BYTE(color.a) << 24) +
-            (BYTE(color.r) << 16) +
-            (BYTE(color.g) << 8) +
-            BYTE(color.b));
 }
