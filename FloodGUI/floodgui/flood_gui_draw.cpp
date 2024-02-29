@@ -303,16 +303,19 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
     for (int n = 0; n < drawData->DrawLists.size(); n++)
     {
         const FloodDrawList* cmd_list = drawData->DrawLists[n];
-        const FloodVector2& minRect = cmd_list->parent->GetFullBoundingMin();
-        const FloodVector2& maxRect = cmd_list->parent->GetFullBoundingMax();
+        
         int vtx_offset = 0;
         int idx_offset = 0;
 
+        // Here we set the clip dimensions of the current window
+        const FloodVector2& minRect = cmd_list->parent ? cmd_list->parent->GetFullBoundingMin() : FloodVector2();
+        const FloodVector2& maxRect = cmd_list->parent ? cmd_list->parent->GetFullBoundingMax() : drawData->Display->DisplaySize;
         const RECT& r = { (LONG)minRect.x, (LONG)minRect.y, (LONG)maxRect.x, (LONG)maxRect.y };
+        
         // We are looping through practically every cmd to the gpu
         for (int i = 0; i < cmd_list->Elements.size(); i++) {
             const FloodDrawMaterial& material = cmd_list->Elements[i];
-            // This is a test clip
+            // This is to clip the drawings to inside the window
             
             backend_data->pd3dDevice->SetScissorRect(&r);
             // This is where we draw our vertexs and points
@@ -346,6 +349,10 @@ void FloodGui::NewFrame() {
 
     // Make sure we clear the global draw list
     //
+    if(FloodGui::Context.DrawData->Foreground)
+    FloodGui::Context.DrawData->Foreground->Clear();
+    if(FloodGui::Context.DrawData->Background)
+    FloodGui::Context.DrawData->Background->Clear();
     FloodGui::Context.DrawData->DrawLists.clear();
 }
 
@@ -359,7 +366,11 @@ void FloodGui::Render()
     FloodGui::Context.FrameStage = FloodRenderStage_FrameRenderStart;
     FloodDrawData* drawData = FloodGui::Context.DrawData;
     // Organize Global Draw Data
-    for (const auto& [name, window] : SortWindows()) { drawData->DrawLists.push_back(window->GetDrawList()); }
+    if (FloodGui::Context.DrawData->Foreground)
+    drawData->DrawLists.push_back(FloodGui::Context.DrawData->Foreground);
+    for (const auto& [name, window] : SortWindows()) { drawData->DrawLists.insert(drawData->DrawLists.begin(), (window->GetDrawList())); }
+    if (FloodGui::Context.DrawData->Background)
+    drawData->DrawLists.push_back(FloodGui::Context.DrawData->Background);
 }
 
 void FloodGui::BeginWindow(const char* windowName)

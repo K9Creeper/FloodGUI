@@ -39,20 +39,7 @@ namespace FloodGui {
 	//extern inline bool TextInput(const char* id, const char* text/* Make sure this has allocated atleast 64 chars*/, const char* buffer);
 	extern inline bool Hotkey(const char* id, uint16_t key, bool global = true);
 }
-class FloodDrawData {
-public:
-	FloodDrawData(){}
-	FloodDrawData(FloodDisplay* display) { this->Display = display;  }
-	FloodDisplay* Display = nullptr; // From FloodGui::Context
 
-	std::vector<FloodDrawList*>DrawLists{};
-
-	unsigned int GetVertexCount() const;
-
-	unsigned int GetIndexCount() const;
-
-	bool isMinimized();
-};
 
 struct FloodDrawMaterial {
 	std::vector<FloodVector2>Points{};
@@ -125,7 +112,24 @@ private:
 
 	void ReserveGeo(const int& index_count, const int& vertex_count);
 };
+class FloodDrawData {
+public:
+	FloodDrawData() { }
+	~FloodDrawData() { Foreground->Clear(); Background->Clear(); delete Foreground; delete Background; }
+	FloodDrawData(FloodDisplay* display) { Foreground = new FloodDrawList(); Background = new FloodDrawList();  this->Display = display; }
+	FloodDisplay* Display = nullptr; // From FloodGui::Context
 
+	std::vector<FloodDrawList*>DrawLists{};
+
+	FloodDrawList* Foreground;
+	FloodDrawList* Background;
+
+	unsigned int GetVertexCount() const;
+
+	unsigned int GetIndexCount() const;
+
+	bool isMinimized();
+};
 class FloodWindow {
 private:
 	FloodDrawList DrawList;

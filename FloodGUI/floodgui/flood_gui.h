@@ -200,6 +200,9 @@ public:
     FloodWindow* ActiveDrawingWindow = nullptr;
     int ActiveDrawingWindowZIndex = 0; // Try not to reset this...
 
+    FloodDrawList* GetForegroundDrawList() { return DrawData->Foreground; }
+    FloodDrawList* GetBackgroundDrawList() { return DrawData->Background; }
+
     std::unordered_map<FloodGuiCol, FloodColor>colors{};
 };
 

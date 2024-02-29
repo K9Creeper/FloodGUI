@@ -116,9 +116,9 @@ int main()
 
 			if (b)
 			{
-				FloodGui::Context.FindWindowByName("Window 1")->GetDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 255, 255, 255), 15, 9);
+				FloodGui::Context.GetForegroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 0, 0, 255), 15, 9);
 			}			
-
+			
 			FloodGui::EndWindow();
 
 		}
