@@ -538,13 +538,13 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
     const float length = win->GetBoundingContentMax().x - minOuter.x - offset.x;
     FloodVector2 maxOuter = minOuter + FloodVector2(length, 25);
 
-    int value = *val;
-    const int sections = min - max; // this is not funny, why am i purposefuly making this neg
+    int& value = *val;
+    const int sections = abs(min - max); // this is not funny, why am i purposefuly making this neg
     const int section = abs(min+0)+value;
 
     FloodVector2 innerSize = FloodVector2(length /sections, 25.f);
-    FloodVector2 minInner = minOuter - FloodVector2(section * innerSize.x, 0);
-    FloodVector2 maxInner= minInner - FloodVector2(innerSize.x, -25);
+    FloodVector2 minInner = minOuter +FloodVector2(section * innerSize.x, 0);
+    FloodVector2 maxInner= minInner + FloodVector2(innerSize.x, 25);
 
     const bool isHoveringOuter = win->WindowIsActive() && FindPoint(minOuter, maxOuter, Context.IO.mouse_pos);
     const bool isHoveringInner = win->WindowIsActive() && FindPoint(minInner, maxInner, Context.IO.mouse_pos);
@@ -563,11 +563,19 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
         prev_ = Context.IO.mouse_pos;
         return false;
     }
+    if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
+        prev_ = Context.IO.mouse_pos;
+        pass = false;
+        return false;
+    }
     if (pass)
     {
-        FloodVector2 difference = Context.IO.mouse_pos - prev_;
-
+        const float difference = Context.IO.mouse_pos.x - prev_.x;
+        const int nValue = value + (difference > 0 ? 1 : difference == 0 ? 0 : -1);
         pass = false;
+        bool ret = nValue != value;
+        value = nValue;
+        return ret;
     }
     return false;
 }
