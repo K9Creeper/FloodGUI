@@ -548,31 +548,41 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
 
     const bool isHoveringOuter = win->WindowIsActive() && FindPoint(minOuter, maxOuter, Context.IO.mouse_pos);
     const bool isHoveringInner = win->WindowIsActive() && FindPoint(minInner, maxInner, Context.IO.mouse_pos);
+    static bool pass;
     std::string sValue = std::to_string(value);
     win->GetDrawList()->AddRectFilled(minOuter, maxOuter, Context.colors[FloodGuiCol_SliderBkg]);
-    win->GetDrawList()->AddRectFilled(minInner, maxInner, isHoveringInner ? Context.colors[FloodGuiCol_SliderSliderHover] : Context.colors[FloodGuiCol_SliderSlider]);
+    win->GetDrawList()->AddRectFilled(minInner, maxInner, (isHoveringInner || pass)? Context.colors[FloodGuiCol_SliderSliderHover] : Context.colors[FloodGuiCol_SliderSlider]);
     FloodVector2 text_size = CalcTextSize(sValue.c_str(), 7, 3);
     const FloodVector2& text_pos = (minOuter + FloodVector2((length / 2.f) - (text_size.x / 2.f), innerSize.y- innerSize.y/2.f + text_size.y/2.f));
     win->GetDrawList()->AddText(sValue.c_str(), text_pos, FloodGui::Context.colors[FloodGuiCol_Text], 7, 3);
 
-    static FloodVector2 prev_;
-    static bool pass;
     if (!pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHoveringInner)
     {
         pass = true;
-        prev_ = Context.IO.mouse_pos;
         return false;
     }
     if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
-        prev_ = Context.IO.mouse_pos;
         pass = false;
         return false;
     }
     if (pass)
     {
-        const float difference = Context.IO.mouse_pos.x - prev_.x;
-        const int nValue = value + (difference > 0 ? 1 : difference == 0 ? 0 : -1);
-        pass = false;
+        int predValue = MAXINT32;
+        for (int s = min; s < max; s++)
+        {
+            const int psection = abs(min + 0) + s;
+            const float minPred = minOuter.x + (psection * innerSize.x);
+            const float maxPred = minPred + innerSize.x;
+            // Find point but for X only
+            if (!(Context.IO.mouse_pos.x > minPred && Context.IO.mouse_pos.x < maxPred))
+                continue;
+            predValue = s;
+            break;
+        }
+
+        const int nValue = predValue;
+        if (nValue > max || nValue < min)
+            return false;
         bool ret = nValue != value;
         value = nValue;
         return ret;

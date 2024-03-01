@@ -95,7 +95,7 @@ int main()
 	D3DCOLOR clear_col_dx = clearColor.ToU32();
 	bool b = false;
 	bool b2 = false;
-	int i = 10;
+	int i = -1;
 	while (running) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessage(&msg); if (msg.message == WM_QUIT) {CleanupDeviceD3D(); running = false; } }
 		if (!running)
