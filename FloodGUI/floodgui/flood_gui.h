@@ -227,4 +227,8 @@ namespace FloodGui {
         Context.colors[FloodGuiCol_Resize] = FloodColor(0.2f, 0.2f, 0.23f, 1.0f);
         Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.25f, 0.25f, 0.38f, 1.0f);
     }
+
+    extern inline void SetupColorBlindStyle() {
+        // Work here max..
+    }
 }
