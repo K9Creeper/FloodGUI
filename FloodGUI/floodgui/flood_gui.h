@@ -169,7 +169,7 @@ public:
 };
 
 enum FloodGuiCol : uint16_t {
-    FloodGuiCol_WinBkg = 0, 
+    FloodGuiCol_WinBkg = 0,
     FloodGuiCol_WinTitleBar,
     FloodGuiCol_WinTitleBarActive,
     FloodGuiCol_Border,
@@ -178,7 +178,10 @@ enum FloodGuiCol : uint16_t {
     FloodGuiCol_ButtonHovered,
     FloodGuiCol_CheckboxActivated,
     FloodGuiCol_Resize,
-    FloodGuiCol_ResizeActivated
+    FloodGuiCol_ResizeActivated,
+    FloodGuiCol_SliderBkg,
+    FloodGuiCol_SliderSlider,
+    FloodGuiCol_SliderSliderHover
 };
 
 class FloodDrawData;
@@ -224,8 +227,13 @@ namespace FloodGui {
     
         Context.colors[FloodGuiCol_CheckboxActivated] = FloodColor(0.74f, 0.58f, 0.98f, 1.f);
     
-        Context.colors[FloodGuiCol_Resize] = FloodColor(0.2f, 0.2f, 0.23f, 1.0f);
-        Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.25f, 0.25f, 0.38f, 1.0f);
+        Context.colors[FloodGuiCol_Resize] = FloodColor(0.44f, 0.37f, 0.61f, 0.29f);
+        Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.74f, 0.58f, 0.98f, 0.29f);
+    
+        Context.colors[FloodGuiCol_SliderBkg] = FloodColor(0.13f, 0.13, 0.17, 1.0f);
+        Context.colors[FloodGuiCol_SliderSlider] = FloodColor(0.44f, 0.37f, 0.61f, 0.54f);
+        Context.colors[FloodGuiCol_SliderSliderHover] = FloodColor(0.74f, 0.58f, 0.98f, 0.54f);
+        
     }
 
     extern inline void SetupColorBlindStyle() {

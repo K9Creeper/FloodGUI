@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
-
+#include <string>
 
 struct FloodGuiD3D9Data
 {
@@ -367,10 +367,10 @@ void FloodGui::Render()
     FloodDrawData* drawData = FloodGui::Context.DrawData;
     // Organize Global Draw Data
     if (FloodGui::Context.DrawData->Foreground)
-    drawData->DrawLists.push_back(FloodGui::Context.DrawData->Foreground);
+        drawData->DrawLists.push_back(FloodGui::Context.DrawData->Foreground);
     for (const auto& [name, window] : SortWindows()) { drawData->DrawLists.insert(drawData->DrawLists.begin(), (window->GetDrawList())); }
     if (FloodGui::Context.DrawData->Background)
-    drawData->DrawLists.insert(drawData->DrawLists.begin(), FloodGui::Context.DrawData->Background);
+        drawData->DrawLists.insert(drawData->DrawLists.begin(), FloodGui::Context.DrawData->Background);
 }
 
 void FloodGui::BeginWindow(const char* windowName)
@@ -526,6 +526,49 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
     else if(Context.IO.MouseInput[FloodGuiButton_LeftMouse])
         pass = false;
 
+    return false;
+}
+
+bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
+    FloodWindow* win = Context.ActiveDrawingWindow;
+    FloodVector2 offset{ 15, 15 };
+    for (int i = 0; i < win->CurrentContentCount(); i++)
+        offset = offset + FloodVector2{ 0, win->content[i].second + offset.y };
+    FloodVector2 minOuter = win->GetBoundingContentMin() + offset;
+    const float length = win->GetBoundingContentMax().x - minOuter.x - offset.x;
+    FloodVector2 maxOuter = minOuter + FloodVector2(length, 25);
+
+    int value = *val;
+    const int sections = min - max; // this is not funny, why am i purposefuly making this neg
+    const int section = abs(min+0)+value;
+
+    FloodVector2 innerSize = FloodVector2(length /sections, 25.f);
+    FloodVector2 minInner = minOuter - FloodVector2(section * innerSize.x, 0);
+    FloodVector2 maxInner= minInner - FloodVector2(innerSize.x, -25);
+
+    const bool isHoveringOuter = win->WindowIsActive() && FindPoint(minOuter, maxOuter, Context.IO.mouse_pos);
+    const bool isHoveringInner = win->WindowIsActive() && FindPoint(minInner, maxInner, Context.IO.mouse_pos);
+    std::string sValue = std::to_string(value);
+    win->GetDrawList()->AddRectFilled(minOuter, maxOuter, Context.colors[FloodGuiCol_SliderBkg]);
+    win->GetDrawList()->AddRectFilled(minInner, maxInner, isHoveringInner ? Context.colors[FloodGuiCol_SliderSliderHover] : Context.colors[FloodGuiCol_SliderSlider]);
+    FloodVector2 text_size = CalcTextSize(sValue.c_str(), 7, 3);
+    const FloodVector2& text_pos = (minOuter + FloodVector2((length / 2.f) - (text_size.x / 2.f), innerSize.y- innerSize.y/2.f + text_size.y/2.f));
+    win->GetDrawList()->AddText(sValue.c_str(), text_pos, FloodGui::Context.colors[FloodGuiCol_Text], 7, 3);
+
+    static FloodVector2 prev_;
+    static bool pass;
+    if (!pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHoveringInner)
+    {
+        pass = true;
+        prev_ = Context.IO.mouse_pos;
+        return false;
+    }
+    if (pass)
+    {
+        FloodVector2 difference = Context.IO.mouse_pos - prev_;
+
+        pass = false;
+    }
     return false;
 }
 
