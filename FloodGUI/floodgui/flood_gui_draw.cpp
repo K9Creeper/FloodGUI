@@ -467,9 +467,10 @@ void FloodGui::EndWindow() {
 
 bool FloodGui::Button(const char* id) {
     FloodWindow* win = Context.ActiveDrawingWindow;
-    FloodVector2 offset{15, 15};
+    const FloodVector2 coffset{ 15, 5 };
+    FloodVector2 offset{ 15, 5 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
-        offset = offset + FloodVector2{0, win->content[i].second+ offset.y};
+        offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
     FloodVector2 textSize = CalcTextSize(id, 7, 7);
     FloodVector2 innerPadding = FloodVector2(textSize.x/5.f, textSize.y);
     FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
@@ -496,9 +497,10 @@ bool FloodGui::Button(const char* id) {
 
 bool FloodGui::Checkbox(const char* id, bool* val) {
     FloodWindow* win = Context.ActiveDrawingWindow;
-    FloodVector2 offset{ 15, 15 };
+    const FloodVector2 coffset{ 15, 5 };
+    FloodVector2 offset{ 15, 5 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
-        offset = offset + FloodVector2{ 0, win->content[i].second + offset.y };
+        offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
     FloodVector2 textSize = CalcTextSize(id, 6, 6);
 
     FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
@@ -514,6 +516,7 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
     win->GetDrawList()->AddText(id, boxMax + FloodVector2{textSize.x * .2f, -textSize.y/2.f}- (FloodVector2(20, 20) / 7.5f), Context.colors[FloodGuiCol_Text], 6, 6);
     
     win->content.push_back({ id, boxMax.y - boxMin.y });
+
     if (pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
     {
         if (val)
@@ -521,19 +524,25 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
         pass = false;
         return true;
     }
-    else if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+    
+    if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse] ) {
         pass = true;
-    else if(Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+    }
+
+    if (Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
+    {
         pass = false;
+    }
 
     return false;
 }
 
 bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
     FloodWindow* win = Context.ActiveDrawingWindow;
-    FloodVector2 offset{ 15, 15 };
+    const FloodVector2 coffset{ 15, 5 };
+    FloodVector2 offset{ 15, 5 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
-        offset = offset + FloodVector2{ 0, win->content[i].second + offset.y };
+        offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
     
     // Here we calc the outer container for the slider
     FloodVector2 minOuter = win->GetBoundingContentMin() + offset;
