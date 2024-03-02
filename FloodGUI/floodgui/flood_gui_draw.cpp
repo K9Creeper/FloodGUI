@@ -572,13 +572,13 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
 
     // This is the backend
     // We check if we have clicked on the dragger
-    if (!pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHoveringInner)
+    if (!pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHoveringOuter)
     {
         pass = true;
         return false;
     }
     // We make sure that we are still holding left mb
-    if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
+    if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse] || !FindPoint(win->GetBoundingContentMin(), win->GetBoundingContentMax(), Context.IO.mouse_pos)) {
         pass = false;
         return false;
     }

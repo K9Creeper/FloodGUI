@@ -109,14 +109,15 @@ int main()
 			FloodGui::BeginWindow("Window 1");
 			
 
-			if (FloodGui::Button("Say Hello and Toggle")) {
+			if (FloodGui::Button("Say Hello and Toggle Background Drawlist")) {
 				std::cout << "Hello From Button!\n";
 				b2 = !b2;
 			}
-			if (FloodGui::Checkbox("Show Alphabet", &b))
+			if (FloodGui::Checkbox("Show Foreground Alphabet", &b))
 				std::cout << "Checkbox was pressed!\n";
 
-			FloodGui::IntSlider("Slider", &i, -5, 15);
+			if (FloodGui::IntSlider("Slider", &i, -10, 10))
+				std::cout << "Slider changed value to: " << i << "\n";
 
 			if (b)
 			{
