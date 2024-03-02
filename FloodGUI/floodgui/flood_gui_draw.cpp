@@ -534,41 +534,65 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
     FloodVector2 offset{ 15, 15 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
         offset = offset + FloodVector2{ 0, win->content[i].second + offset.y };
+    
+    // Here we calc the outer container for the slider
     FloodVector2 minOuter = win->GetBoundingContentMin() + offset;
     const float length = win->GetBoundingContentMax().x - minOuter.x - offset.x;
     FloodVector2 maxOuter = minOuter + FloodVector2(length, 25);
 
+    // These will help with calculating the inner dragger
+    // and the backend
     int& value = *val;
-    const int sections = abs(min - max); // this is not funny, why am i purposefuly making this neg
+    const int sections = abs(min - max)+1; // Last mf
     const int section = abs(min+0)+value;
 
+    // Here we calc the inner dragger
     FloodVector2 innerSize = FloodVector2(length /sections, 25.f);
     FloodVector2 minInner = minOuter +FloodVector2(section * innerSize.x, 0);
     FloodVector2 maxInner= minInner + FloodVector2(innerSize.x, 25);
 
+    // These help us style the inner and also 
+    // help with the backend
     const bool isHoveringOuter = win->WindowIsActive() && FindPoint(minOuter, maxOuter, Context.IO.mouse_pos);
     const bool isHoveringInner = win->WindowIsActive() && FindPoint(minInner, maxInner, Context.IO.mouse_pos);
     static bool pass;
+
+    // Str the value so we can display it
     std::string sValue = std::to_string(value);
+
+    // Here we draw everything
     win->GetDrawList()->AddRectFilled(minOuter, maxOuter, Context.colors[FloodGuiCol_SliderBkg]);
     win->GetDrawList()->AddRectFilled(minInner, maxInner, (isHoveringInner || pass)? Context.colors[FloodGuiCol_SliderSliderHover] : Context.colors[FloodGuiCol_SliderSlider]);
-    FloodVector2 text_size = CalcTextSize(sValue.c_str(), 7, 3);
-    const FloodVector2& text_pos = (minOuter + FloodVector2((length / 2.f) - (text_size.x / 2.f), innerSize.y- innerSize.y/2.f + text_size.y/2.f));
-    win->GetDrawList()->AddText(sValue.c_str(), text_pos, FloodGui::Context.colors[FloodGuiCol_Text], 7, 3);
 
+        // This is where we draw the text
+        FloodVector2 text_size = CalcTextSize(sValue.c_str(), 7, 3);
+        const FloodVector2& text_pos = (minOuter + FloodVector2((length / 2.f) - (text_size.x / 2.f), innerSize.y- innerSize.y/2.f + text_size.y/2.f));
+        win->GetDrawList()->AddText(sValue.c_str(), text_pos, FloodGui::Context.colors[FloodGuiCol_Text], 7, 3);
+
+
+    // This is the backend
+    // We check if we have clicked on the dragger
     if (!pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHoveringInner)
     {
         pass = true;
         return false;
     }
+    // We make sure that we are still holding left mb
     if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
         pass = false;
         return false;
     }
+    // Now we calc the dragger's new position
+    // and val
     if (pass)
     {
+        // This will contain the predicted value
+        // hopefully no one will ever put this guy as the max
         int predValue = MAXINT32;
-        for (int s = min; s < max; s++)
+
+        // Here we loop through all sections
+        // there must be a better way to calculate this without a loop
+        for (int s = min; s <= max; s++)
         {
             const int psection = abs(min + 0) + s;
             const float minPred = minOuter.x + (psection * innerSize.x);
@@ -580,11 +604,15 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
             break;
         }
 
-        const int nValue = predValue;
-        if (nValue > max || nValue < min)
+        // Here we make sure that the pred
+        // is within range
+        if (predValue > max || predValue < min)
             return false;
-        bool ret = nValue != value;
-        value = nValue;
+        // Store prev state
+        bool ret = predValue != value;
+        // Now we change
+        value = predValue;
+        // return prev state
         return ret;
     }
     return false;
