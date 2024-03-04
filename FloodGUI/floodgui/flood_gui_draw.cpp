@@ -428,26 +428,33 @@ void FloodGui::BeginWindow(const char* windowName)
             }
         }
 
+        //if the user previously clicked in the title box and the mouse is still down
+        static bool is_selected = false; 
         static FloodVector2 relative_dst2;
         if (window == hovered && onmouseDown)
         {
-            // Get realative distance to top left on first click
+            // Get relative distance to top left on first click
             relative_dst2 = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
         }
-        if ((window != hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) || onmouseUp)
+        if ((is_selected == false && (window != hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])) || onmouseUp)
         {
             relative_dst2.x = 1; // invalidate
         }
-        if (relative_dst2.x <= 0 && window == hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
+        if (relative_dst2.x <= 0 && (window == hovered || is_selected) && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
             // Window Focusing
             FocusNewWindow(window);
             // Window Dragging
-            if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos)) {
+            if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos) || is_selected) {
                 const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - FloodGui::Context.IO.pmouse_pos;
-                window->MoveWindow(relative_dst2 +dst);
+                window->MoveWindow(relative_dst2 + dst);
+                is_selected = true;
+                
+            }
+            else {
+                //set select to false
+                is_selected = false;
             }
         }
-
         PrevMouseClick = FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
     }
     static const int font_size = 7;
