@@ -237,6 +237,23 @@ namespace FloodGui {
     }
 
     extern inline void SetupColorBlindStyle() {
-        // Work here max..
+        Context.colors[FloodGuiCol_WinBkg] = FloodColor(0.1f, 0.1f, 0.13f, 1.0f);
+        Context.colors[FloodGuiCol_WinTitleBar] = FloodColor(0.16f, 0.16f, 0.21f, 1.0f);
+        Context.colors[FloodGuiCol_WinTitleBarActive] = FloodColor(0.2f, 0.2f, 0.25f, 1.0f);
+
+        Context.colors[FloodGuiCol_Border] = FloodColor(2, 2, 2, 255);
+        Context.colors[FloodGuiCol_Text] = FloodColor(255, 255, 255, 255);
+
+        Context.colors[FloodGuiCol_Button] = FloodColor(58, 58, 82, 255);
+        Context.colors[FloodGuiCol_ButtonHovered] = FloodColor(73, 73, 104, 255);
+
+        Context.colors[FloodGuiCol_CheckboxActivated] = FloodColor(0.74f, 0.58f, 0.98f, 1.f);
+
+        Context.colors[FloodGuiCol_Resize] = FloodColor(0.44f, 0.37f, 0.61f, 0.29f);
+        Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.74f, 0.58f, 0.98f, 0.29f);
+
+        Context.colors[FloodGuiCol_SliderBkg] = FloodColor(0.13f, 0.13, 0.17, 1.0f);
+        Context.colors[FloodGuiCol_SliderSlider] = FloodColor(0.44f, 0.37f, 0.61f, 0.54f);
+        Context.colors[FloodGuiCol_SliderSliderHover] = FloodColor(0.74f, 0.58f, 0.98f, 0.54f);
     }
 }
