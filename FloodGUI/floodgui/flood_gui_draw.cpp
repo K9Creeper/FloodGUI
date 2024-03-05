@@ -405,7 +405,13 @@ void FloodGui::BeginWindow(const char* windowName)
                     const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - relative_dst1;
                     if (relative_dst1.x != 0 && relative_dst1.y != 0)
                     {
-                        window->ResizeWindow((window->GetBoundingContentMax() - window->GetBoundingContentMin()) + dst);
+                        // Here we calculate the new size of the window 
+                        // based on movement and previous sizing
+                        FloodVector2 new_size = (window->GetBoundingContentMax() - window->GetBoundingContentMin()) + dst;
+                        // Lets have a minimum size for our window
+                        // it will not behave nicely otherwise
+                        if (new_size.x > 200 && new_size.y > 200)
+                            window->ResizeWindow(new_size);
                     }
                     relative_dst1 = FloodGui::Context.IO.mouse_pos;
                 }
@@ -448,13 +454,14 @@ void FloodGui::BeginWindow(const char* windowName)
                 const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - FloodGui::Context.IO.pmouse_pos;
                 window->MoveWindow(relative_dst2 + dst);
                 is_selected = true;
-                
             }
             else {
                 //set select to false
                 is_selected = false;
             }
         }
+        if (!FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos))
+            is_selected = false;
         PrevMouseClick = FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
     }
     static const int font_size = 7;
