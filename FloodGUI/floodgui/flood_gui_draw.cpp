@@ -5,6 +5,10 @@
 #include <cstddef>
 #include <iostream>
 #include <string>
+#include <functional>
+
+
+#define FONT_HEIGHT_MODIFIER 1.4f
 
 struct FloodGuiD3D9Data
 {
@@ -29,6 +33,20 @@ struct CUSTOMVERTEX
     float    uv[2];
 };
 
+struct FloodHash {
+    FloodWindow* parent = nullptr;
+    std::string id{};
+    FloodHash() {  }
+    FloodHash(FloodWindow* win, const char* id) {
+        this->parent = win;
+        this->id = id;
+    }
+    uint64_t hash() const noexcept
+    {
+        std::size_t strHash = std::hash<std::string>{}(this->id);
+        return reinterpret_cast<uint64_t>(parent) + strHash;
+    }
+};
 
 //                  //
 // HELPER FUNCTIONS //
@@ -107,7 +125,7 @@ void FocusNewWindow(FloodWindow* target)
 }
 FloodVector2 CalcTextSize(const char* text, const float& size, const float& spacing)
 {
-    return FloodVector2(static_cast<int>(strlen(text)) * (size + spacing), size*1.3f);
+    return FloodVector2(static_cast<int>(strlen(text)) * (size + spacing), size* FONT_HEIGHT_MODIFIER);
 }
 bool ChangeCursor(LPCWSTR cursor)
 {
@@ -394,33 +412,45 @@ void FloodGui::BeginWindow(const char* windowName)
     {
         FloodWindow* hovered = get_window_hovering();
         static bool PrevMouseClick;
+
+        static bool is_selected1 = false;
         static FloodVector2 relative_dst1;
+
         bool onmouseUp = PrevMouseClick && !FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
         bool onmouseDown = !PrevMouseClick && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
         // Window Resizing
         {
-            if (window->WindowIsActive() && window == hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+            if (window->WindowIsActive() && (window == hovered || is_selected1)&& FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])
             {
-                if (FindPoint(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodGui::Context.IO.mouse_pos)) {
+                if (FindPoint(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodGui::Context.IO.mouse_pos) || is_selected1) {
                     const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - relative_dst1;
                     if (relative_dst1.x != 0 && relative_dst1.y != 0)
                     {
+                        is_selected1 = true;
                         // Here we calculate the new size of the window 
                         // based on movement and previous sizing
                         FloodVector2 new_size = (window->GetBoundingContentMax() - window->GetBoundingContentMin()) + dst;
                         // Lets have a minimum size for our window
                         // it will not behave nicely otherwise
-                        if (new_size.x > 200 && new_size.y > 200)
+                        if (new_size.x > 200 && new_size.y > 200) {
                             window->ResizeWindow(new_size);
+                        }
+                        else {
+                            is_selected1 = false;
+                        }
+                    }
+                    else {
+                        is_selected1 = false;
                     }
                     relative_dst1 = FloodGui::Context.IO.mouse_pos;
                 }
             }
-            else if (window->WindowIsActive() && window == hovered && onmouseUp)
+            if (onmouseUp)
             {
                 relative_dst1 = FloodVector2(0, 0);
+                is_selected1 = false;
             }
-            if (window == hovered) {
+            if (window == hovered || is_selected1) {
                 if (FindPoint(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodGui::Context.IO.mouse_pos))
                 {
                     ChangeCursor(IDC_SIZENWSE);
@@ -435,33 +465,33 @@ void FloodGui::BeginWindow(const char* windowName)
         }
 
         //if the user previously clicked in the title box and the mouse is still down
-        static bool is_selected = false; 
+        static bool is_selected2 = false; 
         static FloodVector2 relative_dst2;
         if (window == hovered && onmouseDown)
         {
             // Get relative distance to top left on first click
             relative_dst2 = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
         }
-        if ((is_selected == false && (window != hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])) || onmouseUp)
+        if ((is_selected2 == false && (window != hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])) || onmouseUp)
         {
             relative_dst2.x = 1; // invalidate
         }
-        if (relative_dst2.x <= 0 && (window == hovered || is_selected) && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
+        if (relative_dst2.x <= 0 && (window == hovered || is_selected2) && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
             // Window Focusing
             FocusNewWindow(window);
             // Window Dragging
-            if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos) || is_selected) {
+            if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos) || is_selected2) {
                 const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - FloodGui::Context.IO.pmouse_pos;
                 window->MoveWindow(relative_dst2 + dst);
-                is_selected = true;
+                is_selected2 = true;
             }
             else {
                 //set select to false
-                is_selected = false;
+                is_selected2 = false;
             }
         }
         if (!FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos))
-            is_selected = false;
+            is_selected2 = false;
         PrevMouseClick = FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
     }
     static const int font_size = 7;
@@ -490,20 +520,23 @@ bool FloodGui::Button(const char* id) {
     FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
     FloodVector2 boxMax = boxMin + textSize + innerPadding;
     const bool isHovering = win->WindowIsActive() && FindPoint(boxMin, boxMax, Context.IO.mouse_pos);
-    static bool pass = true;
+    static std::unordered_map<uint64_t, bool> pass{};
+    const uint64_t hash = FloodHash(win, id).hash();
+    if (pass.find(hash) == pass.end())
+        pass[hash] = true;
 
-    win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering && pass ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
+    win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering && pass[hash] ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
     win->GetDrawList()->AddText(id, boxMin + FloodVector2(0, textSize.y) + innerPadding/3.f, Context.colors[FloodGuiCol_Text], 7, 7);
     win->content.push_back({ id, boxMax.y - boxMin.y });
-    if (pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
+    if (pass[hash] && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
     {
-        pass = false;
+        pass[hash] = false;
         return true;
     }
     else if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse])
-        pass = true;
+        pass[hash] = true;
     else if(Context.IO.MouseInput[FloodGuiButton_LeftMouse])
-        pass = false;
+        pass[hash] = false;
         
     return false;
 }
@@ -566,8 +599,8 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
     // These will help with calculating the inner dragger
     // and the backend
     int& value = *val;
-    const int sections = abs(min - max)+1; // Last mf
-    const int section = abs(min+0)+value;
+    const int sections = abs(min - max) +  1 ; // Last mf
+    const int section = (min < 0 ? abs(min) : -1) + value;
 
     // Here we calc the inner dragger
     FloodVector2 innerSize = FloodVector2(length /sections, 25.f);
@@ -578,36 +611,40 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
     // help with the backend
     const bool isHoveringOuter = win->WindowIsActive() && FindPoint(minOuter, maxOuter, Context.IO.mouse_pos);
     const bool isHoveringInner = win->WindowIsActive() && FindPoint(minInner, maxInner, Context.IO.mouse_pos);
-    static bool pass;
-
+    static std::unordered_map<uint64_t, bool> pass{};
+    const uint64_t hash = FloodHash(win, id).hash();
+    if (pass.find(hash) == pass.end())
+        pass[hash] = false;
+    
     // Str the value so we can display it
     std::string sValue = std::to_string(value);
 
     // Here we draw everything
     win->GetDrawList()->AddRectFilled(minOuter, maxOuter, Context.colors[FloodGuiCol_SliderBkg]);
-    win->GetDrawList()->AddRectFilled(minInner, maxInner, (isHoveringInner || pass)? Context.colors[FloodGuiCol_SliderSliderHover] : Context.colors[FloodGuiCol_SliderSlider]);
+    win->GetDrawList()->AddRectFilled(minInner, maxInner, (isHoveringInner || pass[hash])? Context.colors[FloodGuiCol_SliderSliderHover] : Context.colors[FloodGuiCol_SliderSlider]);
 
         // This is where we draw the text
         FloodVector2 text_size = CalcTextSize(sValue.c_str(), 7, 3);
         const FloodVector2& text_pos = (minOuter + FloodVector2((length / 2.f) - (text_size.x / 2.f), innerSize.y- innerSize.y/2.f + text_size.y/2.f));
         win->GetDrawList()->AddText(sValue.c_str(), text_pos, FloodGui::Context.colors[FloodGuiCol_Text], 7, 3);
 
+    win->content.push_back({ id, maxOuter.y - minOuter.y });
 
     // This is the backend
     // We check if we have clicked on the dragger
-    if (!pass && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHoveringOuter)
+    if (!pass[hash] && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHoveringOuter)
     {
-        pass = true;
+        pass[hash] = true;
         return false;
     }
     // We make sure that we are still holding left mb
     if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse] || !FindPoint(win->GetBoundingContentMin(), win->GetBoundingContentMax(), Context.IO.mouse_pos)) {
-        pass = false;
+        pass[hash] = false;
         return false;
     }
     // Now we calc the dragger's new position
     // and val
-    if (pass)
+    if (pass[hash])
     {
         // This will contain the predicted value
         // hopefully no one will ever put this guy as the max
@@ -617,7 +654,7 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
         // there must be a better way to calculate this without a loop
         for (int s = min; s <= max; s++)
         {
-            const int psection = abs(min + 0) + s;
+            const int psection = (min < 0 ? abs(min) : -1) + s;
             const float minPred = minOuter.x + (psection * innerSize.x);
             const float maxPred = minPred + innerSize.x;
             // Find point but for X only
@@ -728,10 +765,21 @@ void FloodDrawList::AddRect(const FloodVector2& min, const FloodVector2& max, Fl
 }
 void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColor col, float font_size) {
     const float width = font_size;
-    const float height = font_size * 1.3f;
+    const float height = font_size * FONT_HEIGHT_MODIFIER;
+    const float half_height = height / 1.6f;
+
     switch (text)
     {
-    case 'a':
+    case 'a': {
+        const FloodVector2 Ltop = FloodVector2(position) + FloodVector2(width, -half_height);
+        AddLine(Ltop, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(Ltop, FloodVector2(position) + FloodVector2(0, -half_height), col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+
+        AddLine(position, FloodVector2(position) + FloodVector2(0, -(half_height/1.8f)), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(0, -(half_height / 1.8f)), FloodVector2(position) + FloodVector2(width, -(half_height / 1.8f)), col, 1);
+        break;
+    }
     case 'A':
     {
         const FloodVector2& top = FloodVector2(position) + FloodVector2(width / 2, -height);
@@ -744,6 +792,14 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'b':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        AddLine(top, position, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), FloodVector2(position) + FloodVector2(width, -half_height), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, -half_height), FloodVector2(position) + FloodVector2(0, -half_height), col, 1);
+        break;
+    }
     case 'B':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -766,6 +822,14 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'c':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+
+        AddLine(position, top, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'C':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -776,6 +840,14 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'd':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(width, -height);
+        AddLine(top, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(FloodVector2(position), FloodVector2(position) + FloodVector2(0, -half_height), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, -half_height), FloodVector2(position) + FloodVector2(0, -half_height), col, 1);
+        break;
+    }
     case 'D':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -790,6 +862,17 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'e':
+    {
+        FloodVector2 Ltop = FloodVector2(position) + FloodVector2(0, -half_height);
+        AddLine(Ltop, position, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(Ltop, Ltop+ FloodVector2(width, 0), col, 1);
+
+        AddLine(FloodVector2(position) + FloodVector2(0, -(half_height / 1.8f)), FloodVector2(position) + FloodVector2(width, -(half_height / 1.8f)), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, -(half_height / 1.8f)), Ltop + FloodVector2(width, 0), col, 1);
+
+        break;
+    }
     case 'E':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -802,6 +885,17 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'f':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(width/2.f, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -half_height);
+
+        AddLine(FloodVector2(position) + FloodVector2(width/ 2.f, 0), top, col, 1);
+
+        AddLine(middle, FloodVector2(middle) + FloodVector2(width, 0), col, 1);
+
+        AddLine(top, top + FloodVector2(width*.7f, 0), col, 1);
+        break;
+    }
     case 'F':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -815,6 +909,19 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'g':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+
+        AddLine(position, top, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        AddLine(top + FloodVector2(width, 0), FloodVector2(position) + FloodVector2(width, half_height), col, 1);
+
+        AddLine(FloodVector2(position) + FloodVector2(width, half_height), FloodVector2(position) + FloodVector2(0, half_height), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(0, half_height), FloodVector2(position) + FloodVector2(0, half_height*.5), col, 1);
+
+        break;
+    }
     case 'G':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -836,6 +943,14 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'h':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height/2.f);
+        AddLine(position, top, col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), middle + FloodVector2(width, 0), col, 1);
+        AddLine(middle, middle + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'H':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -846,6 +961,15 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'i':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
+        AddLine(vmiddle, vmiddle + FloodVector2(0, -half_height), col, 1);
+
+        AddLine(vmiddle + FloodVector2(0, -half_height * 1.3f), vmiddle + FloodVector2(0, -half_height*1.5f), col, 1.5f);
+
+        break;
+    }
     case 'I':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -856,6 +980,17 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'j':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(width / 2.f, -half_height);
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
+        AddLine(top, vmiddle + FloodVector2(0, half_height), col, 1);
+
+        AddLine(vmiddle + FloodVector2(0, -half_height * 1.3f), vmiddle + FloodVector2(0, -half_height * 1.5f), col, 1.5f);
+
+        AddLine(FloodVector2(position) + FloodVector2(width / 2.f, half_height), FloodVector2(position) + FloodVector2(0, half_height), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(0, half_height), FloodVector2(position) + FloodVector2(0, half_height * .5), col, 1);
+        break;
+    }
     case 'J':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -866,6 +1001,14 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'k':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height*1.4f);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -half_height / 2.f);
+        AddLine(position, top, col, 1);
+        AddLine(middle, top + FloodVector2(width, half_height * .4f), col, 1);
+        AddLine(middle, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'K':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -876,6 +1019,11 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'l':
+    {
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
+        AddLine(vmiddle, vmiddle + FloodVector2(0, -height), col, 1);
+        break;
+    }
     case 'L':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -885,6 +1033,17 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'm':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, -half_height / 2.5f);
+        AddLine(position, top, col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        AddLine(top + FloodVector2(width / 2.f, 0), vmiddle, col, 1);
+        AddLine(top + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
+
+        AddLine(top + FloodVector2(width, 0), FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'M':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -896,6 +1055,14 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'n':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+
+        AddLine(position, top, col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'N':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -905,6 +1072,15 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'o':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+
+        AddLine(position, top, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'O':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -916,6 +1092,13 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'p':
+    {
+        AddLine(FloodVector2(position) + FloodVector2(0, -half_height), FloodVector2(position) + FloodVector2(0, height * .6f), col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), FloodVector2(position) + FloodVector2(width, -half_height), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, -half_height), FloodVector2(position) + FloodVector2(0, -half_height), col, 1);
+        break;
+    }
     case 'P':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -928,6 +1111,14 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'q':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(width, -half_height);
+        AddLine(top, FloodVector2(position) + FloodVector2(width, height * .6f), col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(FloodVector2(position), FloodVector2(position) + FloodVector2(0, -half_height), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, -half_height), FloodVector2(position) + FloodVector2(0, -half_height), col, 1);
+        break;
+    }
     case 'Q':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -940,6 +1131,13 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'r':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+
+        AddLine(position, top, col, 1);
+        AddLine(top, top + FloodVector2(width*.75f, 0), col, 1);
+        break;
+    }
     case 'R':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -952,6 +1150,18 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 's':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -half_height / 2.f);
+
+        AddLine(middle, top, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+
+        AddLine(middle, FloodVector2(middle) + FloodVector2(width, 0), col, 1);
+        AddLine(middle + FloodVector2(width, 0), FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(top, top + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'S':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -965,7 +1175,15 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(top, top + FloodVector2(width, 0), col, 1);
         break;
     }
-    case 't':
+    case 't': 
+    {
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -(half_height*1.36f) / 1.6f);
+
+        AddLine(vmiddle, vmiddle + FloodVector2(0, -(half_height * 1.36f)), col, 1);
+        AddLine(middle, FloodVector2(middle) + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'T':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -975,6 +1193,14 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'u':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+
+        AddLine(position, top, col, 1);
+        AddLine(position, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), top + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'U':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -985,6 +1211,13 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'v':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
+        AddLine(top, vmiddle, col, 1);
+        AddLine(vmiddle, top + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'V':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -994,6 +1227,15 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'w':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, -half_height);
+        AddLine(position, top, col, 1);
+        AddLine(position, vmiddle, col, 1);
+        AddLine(vmiddle, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(top + FloodVector2(width, 0), FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        break;
+    }
     case 'W':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -1005,6 +1247,12 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'x':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+        AddLine(top, FloodVector2(position) + FloodVector2(width, 0), col, 1);
+        AddLine(top + FloodVector2(width, 0), FloodVector2(position), col, 1);
+        break;
+    }
     case 'X':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -1013,6 +1261,14 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'y':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
+        AddLine(top, vmiddle, col, 1);
+        AddLine(vmiddle, top + FloodVector2(width, 0), col, 1);
+        AddLine(vmiddle, vmiddle - FloodVector2(width / 2.2f, -height*.6f), col, 1);
+        break;
+    }
     case 'Y':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
@@ -1024,6 +1280,13 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         break;
     }
     case 'z':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -half_height);
+        AddLine(top + FloodVector2(width, 0), top, col, 1);
+        AddLine(top + FloodVector2(width, 0), FloodVector2(position), col, 1);
+        AddLine(FloodVector2(position) + FloodVector2(width, 0), position, col, 1);
+        break;
+    }
     case 'Z':
     {
         FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);

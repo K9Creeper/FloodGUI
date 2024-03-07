@@ -94,7 +94,10 @@ int main()
 
 	D3DCOLOR clear_col_dx = clearColor.ToU32();
 	bool b = false;
+	int ba = 1;
+
 	bool b2 = false;
+	int b2a = 1;
 	int i = -1;
 	while (running) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessage(&msg); if (msg.message == WM_QUIT) {CleanupDeviceD3D(); running = false; } }
@@ -107,32 +110,57 @@ int main()
 		FloodGui::NewFrame();
 		{
 			FloodGui::BeginWindow("Window 1");
-			
-
-			if (FloodGui::Button("Say Hello")) {
-				std::cout << "Hello From Button!\n";
-				
+			if (FloodGui::Button("Say Hello"))
+			{
+				std::cout << "Hello from Button\n";
 			}
+
+			if (FloodGui::Button("Switch Color Blind Modes")) {
+				// This tracks the state of color
+				static int counter = 0;
+				// increases
+				counter++;
+				// resets back to 0
+				if (counter > 3) {
+					counter = 0;
+				}
+				// Now we change the color based on the counter
+				if (counter != 0) {FloodGui::SetupColorBlindStyle(counter);}
+				else {
+					FloodGui::SetupColorStyle();
+				}
+			}
+
 			if (FloodGui::Checkbox("Show Foreground Alphabet", &b))
 				std::cout << "Checkbox was pressed!\n";
+			
+			if (b)
+			{
+				// This is an example of using the Foreground Draw List
+				FloodGui::IntSlider("Foreground Alphabet Type", &ba, 1, 2);
+				if(ba == 1)
+					FloodGui::Context.GetForegroundDrawList()->AddText("ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890", FloodVector2(50, 500), FloodColor(255, 0, 0, 255), 15, 9);
+				else
+					FloodGui::Context.GetForegroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 0, 0, 255), 15, 9);
+			}
+
 
 			if (FloodGui::Checkbox("Show Background Alphabet", &b2))
 				std::cout << "Checkbox was pressed!\n";
 
-			if (FloodGui::IntSlider("Slider", &i, -10, 10))
-				std::cout << "Slider changed value to: " << i << "\n";
-
-			if (b)
-			{
-				// This is an example of using the Foreground Draw List
-				FloodGui::Context.GetForegroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 0, 0, 255), 15, 9);
-			}			
-
 			if (b2)
 			{
 				// This is an example of using the Background Draw List
-				FloodGui::Context.GetBackgroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(200, 550), FloodColor(255, 255, 0, 255), 15, 9);
+				FloodGui::IntSlider("Background Alphabet Type", &b2a, 1, 2);
+				if (b2a == 1)
+					FloodGui::Context.GetBackgroundDrawList()->AddText("ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890", FloodVector2(200, 550), FloodColor(255, 255, 0, 255), 15, 9);
+				else
+					FloodGui::Context.GetBackgroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(200, 550), FloodColor(255, 255, 0, 255), 15, 9);
 			}
+			
+			if (FloodGui::IntSlider("Slider", &i, -10, 10))
+				std::cout << "Slider changed value to: " << i << "\n";
+			
 			FloodGui::EndWindow();
 
 		}

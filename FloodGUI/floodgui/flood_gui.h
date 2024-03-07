@@ -236,24 +236,55 @@ namespace FloodGui {
         
     }
 
-    extern inline void SetupColorBlindStyle() {
-        Context.colors[FloodGuiCol_WinBkg] = FloodColor(0.1f, 0.1f, 0.13f, 1.0f);
-        Context.colors[FloodGuiCol_WinTitleBar] = FloodColor(0.16f, 0.16f, 0.21f, 1.0f);
-        Context.colors[FloodGuiCol_WinTitleBarActive] = FloodColor(0.2f, 0.2f, 0.25f, 1.0f);
-
-        Context.colors[FloodGuiCol_Border] = FloodColor(2, 2, 2, 255);
-        Context.colors[FloodGuiCol_Text] = FloodColor(255, 255, 255, 255);
-
-        Context.colors[FloodGuiCol_Button] = FloodColor(58, 58, 82, 255);
-        Context.colors[FloodGuiCol_ButtonHovered] = FloodColor(73, 73, 104, 255);
-
-        Context.colors[FloodGuiCol_CheckboxActivated] = FloodColor(0.74f, 0.58f, 0.98f, 1.f);
-
-        Context.colors[FloodGuiCol_Resize] = FloodColor(0.44f, 0.37f, 0.61f, 0.29f);
-        Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.74f, 0.58f, 0.98f, 0.29f);
-
-        Context.colors[FloodGuiCol_SliderBkg] = FloodColor(0.13f, 0.13, 0.17, 1.0f);
-        Context.colors[FloodGuiCol_SliderSlider] = FloodColor(0.44f, 0.37f, 0.61f, 0.54f);
-        Context.colors[FloodGuiCol_SliderSliderHover] = FloodColor(0.74f, 0.58f, 0.98f, 0.54f);
+    extern inline void SetupColorBlindStyle(int type) {
+        // Maxwell's insane colors
+        //
+        switch (type) {
+        case 1:
+            Context.colors[FloodGuiCol_WinBkg] = FloodColor(0.11f, 0.09f, 0.08f, 1.0f); 
+            Context.colors[FloodGuiCol_WinTitleBar] = FloodColor(0.17f, 0.13f, 0.11f, 1.0f); 
+            Context.colors[FloodGuiCol_WinTitleBarActive] = FloodColor(0.23f, 0.17f, 0.15f, 1.0f); 
+            Context.colors[FloodGuiCol_Border] = FloodColor(2, 2, 2, 255); 
+            Context.colors[FloodGuiCol_Text] = FloodColor(255, 255, 255, 255); 
+            Context.colors[FloodGuiCol_Button] = FloodColor(78, 68, 64, 255); 
+            Context.colors[FloodGuiCol_ButtonHovered] = FloodColor(95, 83, 78, 255); 
+            Context.colors[FloodGuiCol_CheckboxActivated] = FloodColor(0.75f, 0.54f, 0.52f, 1.f); 
+            Context.colors[FloodGuiCol_Resize] = FloodColor(0.46f, 0.33f, 0.31f, 0.29f); 
+            Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.76f, 0.55f, 0.53f, 0.29f); 
+            Context.colors[FloodGuiCol_SliderBkg] = FloodColor(0.12f, 0.10f, 0.09f, 1.0f); 
+            Context.colors[FloodGuiCol_SliderSlider] = FloodColor(0.45f, 0.32f, 0.30f, 0.54f); 
+            Context.colors[FloodGuiCol_SliderSliderHover] = FloodColor(0.75f, 0.54f, 0.52f, 0.54f);
+            break;
+        case 2:
+            Context.colors[FloodGuiCol_WinBkg] = FloodColor(0.12f, 0.13f, 0.1f, 1.0f); 
+            Context.colors[FloodGuiCol_WinTitleBar] = FloodColor(0.18f, 0.20f, 0.15f, 1.0f); 
+            Context.colors[FloodGuiCol_WinTitleBarActive] = FloodColor(0.23f, 0.25f, 0.19f, 1.0f);
+            Context.colors[FloodGuiCol_Border] = FloodColor(2, 2, 2, 255); 
+            Context.colors[FloodGuiCol_Text] = FloodColor(255, 255, 255, 255);
+            Context.colors[FloodGuiCol_Button] = FloodColor(63, 69, 59, 255); 
+            Context.colors[FloodGuiCol_ButtonHovered] = FloodColor(81, 89, 76, 255); 
+            Context.colors[FloodGuiCol_CheckboxActivated] = FloodColor(0.72f, 0.63f, 0.75f, 1.f); 
+            Context.colors[FloodGuiCol_Resize] = FloodColor(0.43f, 0.47f, 0.37f, 0.29f); 
+            Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.73f, 0.68f, 0.75f, 0.29f); 
+            Context.colors[FloodGuiCol_SliderBkg] = FloodColor(0.13f, 0.15f, 0.11f, 1.0f); 
+            Context.colors[FloodGuiCol_SliderSlider] = FloodColor(0.45f, 0.51f, 0.39f, 0.54f); 
+            Context.colors[FloodGuiCol_SliderSliderHover] = FloodColor(0.75f, 0.81f, 0.69f, 0.54f);
+            break;
+        case 3:
+            Context.colors[FloodGuiCol_WinBkg] = FloodColor(0.13f, 0.1f, 0.1f, 1.0f); 
+            Context.colors[FloodGuiCol_WinTitleBar] = FloodColor(0.21f, 0.16f, 0.16f, 1.0f);
+            Context.colors[FloodGuiCol_WinTitleBarActive] = FloodColor(0.25f, 0.2f, 0.2f, 1.0f);
+            Context.colors[FloodGuiCol_Border] = FloodColor(2, 2, 2, 255); 
+            Context.colors[FloodGuiCol_Text] = FloodColor(255, 255, 255, 255); 
+            Context.colors[FloodGuiCol_Button] = FloodColor(71, 71, 57, 255); 
+            Context.colors[FloodGuiCol_ButtonHovered] = FloodColor(89, 89, 71, 255); 
+            Context.colors[FloodGuiCol_CheckboxActivated] = FloodColor(0.77f, 0.69f, 0.93f, 1.f); 
+            Context.colors[FloodGuiCol_Resize] = FloodColor(0.41f, 0.52f, 0.29f, 0.29f); 
+            Context.colors[FloodGuiCol_ResizeActivated] = FloodColor(0.77f, 0.69f, 0.93f, 0.29f); 
+            Context.colors[FloodGuiCol_SliderBkg] = FloodColor(0.17f, 0.17f, 0.13f, 1.0f); 
+            Context.colors[FloodGuiCol_SliderSlider] = FloodColor(0.48f, 0.58f, 0.39f, 0.54f); 
+            Context.colors[FloodGuiCol_SliderSliderHover] = FloodColor(0.77f, 0.69f, 0.93f, 0.54f);
+            break;
+        }
     }
 }
