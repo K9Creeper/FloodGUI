@@ -1404,6 +1404,12 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
         AddLine(middle + FloodVector2(width, 0), middle, col, 1);
         break;
     }
+    case '-':
+    {
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
+        AddLine(middle, middle + FloodVector2(width, 0), col, 1);
+        break;
+    }
     }
 }
 void FloodDrawList::AddText(const char* text, const FloodVector2& position, FloodColor col, float font_size, float spacing)
