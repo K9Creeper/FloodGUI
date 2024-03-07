@@ -593,7 +593,9 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
     
     // Here we calc the outer container for the slider
     FloodVector2 minOuter = win->GetBoundingContentMin() + offset;
-    const float length = win->GetBoundingContentMax().x - minOuter.x - offset.x;
+     FloodVector2 text_size1 = CalcTextSize(id, 7, 3);
+     const FloodVector2 text_padding = { 7 , text_size1 .y/2.5f};
+    const float length = win->GetBoundingContentMax().x - minOuter.x - offset.x - text_size1.x - text_padding.x;
     FloodVector2 maxOuter = minOuter + FloodVector2(length, 25);
 
     // These will help with calculating the inner dragger
@@ -622,7 +624,7 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
     // Here we draw everything
     win->GetDrawList()->AddRectFilled(minOuter, maxOuter, Context.colors[FloodGuiCol_SliderBkg]);
     win->GetDrawList()->AddRectFilled(minInner, maxInner, (isHoveringInner || pass[hash])? Context.colors[FloodGuiCol_SliderSliderHover] : Context.colors[FloodGuiCol_SliderSlider]);
-
+    win->GetDrawList()->AddText(id, maxOuter + FloodVector2(text_padding.x, -text_padding.y*1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 3);
         // This is where we draw the text
         FloodVector2 text_size = CalcTextSize(sValue.c_str(), 7, 3);
         const FloodVector2& text_pos = (minOuter + FloodVector2((length / 2.f) - (text_size.x / 2.f), innerSize.y- innerSize.y/2.f + text_size.y/2.f));
