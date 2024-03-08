@@ -399,7 +399,7 @@ void FloodGui::BeginWindow(const char* windowName)
     // Create a new window if it doesnt exist
     if (!windowExists)
     {
-        window = new FloodWindow(windowName, { 400, 400 });
+        window = new FloodWindow(windowName, { 600, 600 });
         window->SetZIndex(context.ActiveDrawingWindowZIndex++);
         context.Windows[windowName] = window;
     }
@@ -432,7 +432,7 @@ void FloodGui::BeginWindow(const char* windowName)
                         FloodVector2 new_size = (window->GetBoundingContentMax() - window->GetBoundingContentMin()) + dst;
                         // Lets have a minimum size for our window
                         // it will not behave nicely otherwise
-                        if (new_size.x > 200 && new_size.y > 200) {
+                        if (new_size.x > 600 && new_size.y > 600) {
                             window->ResizeWindow(new_size);
                         }
                         else {
@@ -495,7 +495,7 @@ void FloodGui::BeginWindow(const char* windowName)
         PrevMouseClick = FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
     }
     static const int font_size = 7;
-    static const int spacing = 7;
+    static const int spacing = 5;
     DrawList->AddRectFilled(window->GetBoundingContentMin(), window->GetBoundingContentMax() , Context.colors[FloodGuiCol_WinBkg]);
     DrawList->AddTriangleFilled(window->GetBoundingContentMax() - FloodVector2(0, 20.f), window->GetBoundingContentMax() - FloodVector2(20.f, 0), window->GetBoundingContentMax(), (FindPoint(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodGui::Context.IO.mouse_pos) ? Context.colors[FloodGuiCol_ResizeActivated] : Context.colors[FloodGuiCol_Resize]));
     DrawList->AddRectFilled(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), window->WindowIsActive() ? Context.colors[FloodGuiCol_WinTitleBarActive] : Context.colors[FloodGuiCol_WinTitleBar]);
@@ -515,7 +515,7 @@ bool FloodGui::Button(const char* id) {
     FloodVector2 offset{ 15, 5 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
         offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
-    FloodVector2 textSize = CalcTextSize(id, 7, 7);
+    FloodVector2 textSize = CalcTextSize(id, 7, 5);
     FloodVector2 innerPadding = FloodVector2(textSize.x/5.f, textSize.y);
     FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
     FloodVector2 boxMax = boxMin + textSize + innerPadding;
@@ -526,7 +526,7 @@ bool FloodGui::Button(const char* id) {
         pass[hash] = true;
 
     win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering && pass[hash] ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
-    win->GetDrawList()->AddText(id, boxMin + FloodVector2(0, textSize.y) + innerPadding/3.f, Context.colors[FloodGuiCol_Text], 7, 7);
+    win->GetDrawList()->AddText(id, boxMin + FloodVector2(0, textSize.y) + innerPadding/3.f, Context.colors[FloodGuiCol_Text], 7, 5);
     win->content.push_back({ id, boxMax.y - boxMin.y });
     if (pass[hash] && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
     {
@@ -541,6 +541,206 @@ bool FloodGui::Button(const char* id) {
     return false;
 }
 
+bool FloodGui::Color4Slider(const char* id, uint8_t* col4) {
+    FloodWindow* win = Context.ActiveDrawingWindow;
+    const FloodVector2 coffset{ 15, 5 };
+    FloodVector2 offset{ 15, 5 };
+    for (int i = 0; i < win->CurrentContentCount(); i++)
+        offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
+    FloodVector2 text_size1 = CalcTextSize(id, 7, 5);
+    const FloodVector2 text_padding = { 7 , text_size1.y / 2.5f };
+    const float length = (win->GetBoundingContentMax().x - (win->GetBoundingContentMin() + offset).x - offset.x - text_size1.x - text_padding.x - (5.f*4)) / 4;
+    float endX = 0;
+    static std::unordered_map<uint64_t, bool> pass{};
+    bool ret = false;
+    for (uint16_t i = 0; i < 4; i++)
+    {
+        // Here we calc the outer container for the slider
+        const float xPadding = (i > 0 ? 5.f : 0.f);
+        FloodVector2 minOuter = win->GetBoundingContentMin() + offset+ FloodVector2((length * i )+xPadding*i, 0);
+        FloodVector2 maxOuter = minOuter + FloodVector2(length, 25);
+        endX = maxOuter.x;
+
+
+        uint8_t& value = col4[i];
+        const int sections = abs(0 - 255) + 1; // Last mf
+        const int section = (0 < 0 ? abs(255) : -1) + value;
+
+        // Here we calc the inner dragger
+        FloodVector2 innerSize = FloodVector2(length / sections, 25.f);
+
+        const bool isHoveringOuter = win->WindowIsActive() && FindPoint(minOuter, maxOuter, Context.IO.mouse_pos);
+        const uint64_t hash = FloodHash(win, (std::string(id) + std::to_string(i)).c_str()).hash();
+        if (pass.find(hash) == pass.end())
+            pass[hash] = false;
+        std::string sValue = (i == 0 ? "R " : (i==1 ? "G " : (i==2 ? "B " : (i==3 ? "A " : "")))) + std::to_string(value);
+        
+        
+        win->GetDrawList()->AddRectFilled(minOuter, maxOuter, Context.colors[FloodGuiCol_SliderBkg]);
+
+        FloodVector2 text_size = CalcTextSize(sValue.c_str(), 7, 3);
+        const FloodVector2& text_pos = (minOuter + FloodVector2((length / 2.f) - (text_size.x / 2.f), innerSize.y - innerSize.y / 2.f + text_size.y / 2.f));
+        win->GetDrawList()->AddText(sValue.c_str(), text_pos, FloodGui::Context.colors[FloodGuiCol_Text], 7, 3);
+    
+        // This is the backend
+    // We check if we have clicked on the dragger
+        if (!pass[hash] && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHoveringOuter)
+        {
+            pass[hash] = true;
+            ret = false;
+        }
+        // We make sure that we are still holding left mb
+        else if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse] || !FindPoint(win->GetBoundingContentMin(), win->GetBoundingContentMax(), Context.IO.mouse_pos)) {
+            pass[hash] = false;
+            ret = false;
+        }
+        // Now we calc the dragger's new position
+        // and val
+        else if (pass[hash])
+        {
+            // This will contain the predicted value
+            // hopefully no one will ever put this guy as the max
+            int predValue = 256;
+
+            // Here we loop through all sections
+            // there must be a better way to calculate this without a loop
+            for (int s = 0; s <= 255; s++)
+            {
+                const int psection = (0 < 0 ? abs(0) : -1) + s;
+                const float minPred = minOuter.x + (psection * innerSize.x);
+                const float maxPred = minPred + innerSize.x;
+                // Find point but for X only
+                if (!(Context.IO.mouse_pos.x > minPred && Context.IO.mouse_pos.x < maxPred))
+                    continue;
+                predValue = s;
+                break;
+            }
+
+            // Here we make sure that the pred
+            // is within range
+            if (predValue > 255 || predValue < 0)
+                ret = false;
+            // Store prev state
+            bool ret1 = predValue != value;
+            // Now we change
+            if (predValue != 256)
+                value = predValue;
+            else
+            {
+                if (Context.IO.mouse_pos.x < maxOuter.x)
+                    value = 0;
+                else
+                    value = 255;
+            }
+            // return prev state
+            ret = ret1;
+        }
+    }
+    win->GetDrawList()->AddText(id, (win->GetBoundingContentMin() + offset + FloodVector2(endX- win->GetBoundingContentMin().x, 25)) + FloodVector2(text_padding.x, -text_padding.y * 1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 5);
+    win->content.push_back({ id, 25.f});
+    return ret;
+}
+
+bool FloodGui::Color3Slider(const char* id, uint8_t* col3) {
+    FloodWindow* win = Context.ActiveDrawingWindow;
+    const FloodVector2 coffset{ 15, 5 };
+    FloodVector2 offset{ 15, 5 };
+    for (int i = 0; i < win->CurrentContentCount(); i++)
+        offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
+    FloodVector2 text_size1 = CalcTextSize(id, 7, 5);
+    const FloodVector2 text_padding = { 7 , text_size1.y / 2.5f };
+    const float length = (win->GetBoundingContentMax().x - (win->GetBoundingContentMin() + offset).x - offset.x - text_size1.x - text_padding.x - (5.f * 3)) / 3;
+    float endX = 0;
+    static std::unordered_map<uint64_t, bool> pass{};
+    bool ret = false;
+    for (uint16_t i = 0; i < 3; i++)
+    {
+        // Here we calc the outer container for the slider
+        const float xPadding = (i > 0 ? 5.f : 0.f);
+        FloodVector2 minOuter = win->GetBoundingContentMin() + offset + FloodVector2((length * i) + xPadding * i, 0);
+        FloodVector2 maxOuter = minOuter + FloodVector2(length, 25);
+        endX = maxOuter.x;
+
+
+        uint8_t& value = col3[i];
+        const int sections = abs(0 - 255) + 1; // Last mf
+        const int section = (0 < 0 ? abs(255) : -1) + value;
+
+        // Here we calc the inner dragger
+        FloodVector2 innerSize = FloodVector2(length / sections, 25.f);
+
+        const bool isHoveringOuter = win->WindowIsActive() && FindPoint(minOuter, maxOuter, Context.IO.mouse_pos);
+        const uint64_t hash = FloodHash(win, (std::string(id) + std::to_string(i)).c_str()).hash();
+        if (pass.find(hash) == pass.end())
+            pass[hash] = false;
+        std::string sValue = (i == 0 ? "R " : (i == 1 ? "G " : (i == 2 ? "B " : (i == 3 ? "A " : "")))) + std::to_string(value);
+
+
+        win->GetDrawList()->AddRectFilled(minOuter, maxOuter, Context.colors[FloodGuiCol_SliderBkg]);
+
+        FloodVector2 text_size = CalcTextSize(sValue.c_str(), 7, 3);
+        const FloodVector2& text_pos = (minOuter + FloodVector2((length / 2.f) - (text_size.x / 2.f), innerSize.y - innerSize.y / 2.f + text_size.y / 2.f));
+        win->GetDrawList()->AddText(sValue.c_str(), text_pos, FloodGui::Context.colors[FloodGuiCol_Text], 7, 3);
+
+        // This is the backend
+    // We check if we have clicked on the dragger
+        if (!pass[hash] && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHoveringOuter)
+        {
+            pass[hash] = true;
+            ret = false;
+        }
+        // We make sure that we are still holding left mb
+        else if (!Context.IO.MouseInput[FloodGuiButton_LeftMouse] || !FindPoint(win->GetBoundingContentMin(), win->GetBoundingContentMax(), Context.IO.mouse_pos)) {
+            pass[hash] = false;
+            ret = false;
+        }
+        // Now we calc the dragger's new position
+        // and val
+        else if (pass[hash])
+        {
+            // This will contain the predicted value
+            // hopefully no one will ever put this guy as the max
+            int predValue = 256;
+
+            // Here we loop through all sections
+            // there must be a better way to calculate this without a loop
+            for (int s = 0; s <= 255; s++)
+            {
+                const int psection = (0 < 0 ? abs(0) : -1) + s;
+                const float minPred = minOuter.x + (psection * innerSize.x);
+                const float maxPred = minPred + innerSize.x;
+                // Find point but for X only
+                if (!(Context.IO.mouse_pos.x > minPred && Context.IO.mouse_pos.x < maxPred))
+                    continue;
+                predValue = s;
+                break;
+            }
+
+            // Here we make sure that the pred
+            // is within range
+            if (predValue > 255 || predValue < 0)
+                ret = false;
+            // Store prev state
+            bool ret1 = predValue != value;
+            // Now we change
+            if (predValue != 256)
+                value = predValue;
+            else
+            {
+                if (Context.IO.mouse_pos.x < maxOuter.x)
+                    value = 0;
+                else
+                    value = 255;
+            }
+            // return prev state
+            ret = ret1;
+        }
+    }
+    win->GetDrawList()->AddText(id, (win->GetBoundingContentMin() + offset + FloodVector2(endX - win->GetBoundingContentMin().x, 25)) + FloodVector2(text_padding.x, -text_padding.y * 1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 5);
+
+    win->content.push_back({ id, 25.f });
+    return ret;
+}
 
 bool FloodGui::Checkbox(const char* id, bool* val) {
     FloodWindow* win = Context.ActiveDrawingWindow;
@@ -548,7 +748,7 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
     FloodVector2 offset{ 15, 5 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
         offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
-    FloodVector2 textSize = CalcTextSize(id, 6, 6);
+    FloodVector2 textSize = CalcTextSize(id, 7, 5);
 
     FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
     FloodVector2 boxMax = boxMin + FloodVector2(20, 20);
@@ -560,7 +760,7 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
     win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering && pass ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
     if (isToggled)
         win->GetDrawList()->AddRectFilled(boxMin+ (FloodVector2(20, 20)/5.f), boxMax-(FloodVector2(20, 20) / 5.f), Context.colors[FloodGuiCol_CheckboxActivated]);
-    win->GetDrawList()->AddText(id, boxMax + FloodVector2{textSize.x * .2f, -textSize.y/2.f}- (FloodVector2(20, 20) / 7.5f), Context.colors[FloodGuiCol_Text], 6, 6);
+    win->GetDrawList()->AddText(id, boxMax + FloodVector2{7, -textSize.y/2.f}- (FloodVector2(20, 20) / 7.5f), Context.colors[FloodGuiCol_Text],7, 5);
     
     win->content.push_back({ id, boxMax.y - boxMin.y });
 
@@ -593,7 +793,7 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
     
     // Here we calc the outer container for the slider
     FloodVector2 minOuter = win->GetBoundingContentMin() + offset;
-     FloodVector2 text_size1 = CalcTextSize(id, 7, 3);
+     FloodVector2 text_size1 = CalcTextSize(id, 7, 5);
      const FloodVector2 text_padding = { 7 , text_size1 .y/2.5f};
     const float length = win->GetBoundingContentMax().x - minOuter.x - offset.x - text_size1.x - text_padding.x;
     FloodVector2 maxOuter = minOuter + FloodVector2(length, 25);
@@ -624,7 +824,7 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
     // Here we draw everything
     win->GetDrawList()->AddRectFilled(minOuter, maxOuter, Context.colors[FloodGuiCol_SliderBkg]);
     win->GetDrawList()->AddRectFilled(minInner, maxInner, (isHoveringInner || pass[hash])? Context.colors[FloodGuiCol_SliderSliderHover] : Context.colors[FloodGuiCol_SliderSlider]);
-    win->GetDrawList()->AddText(id, maxOuter + FloodVector2(text_padding.x, -text_padding.y*1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 3);
+    win->GetDrawList()->AddText(id, maxOuter + FloodVector2(text_padding.x, -text_padding.y*1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 5);
         // This is where we draw the text
         FloodVector2 text_size = CalcTextSize(sValue.c_str(), 7, 3);
         const FloodVector2& text_pos = (minOuter + FloodVector2((length / 2.f) - (text_size.x / 2.f), innerSize.y- innerSize.y/2.f + text_size.y/2.f));

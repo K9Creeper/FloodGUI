@@ -188,15 +188,22 @@ public:
 };
 
 class FloodColor {
+private:
+	uint8_t rdata[4] = {0, 0, 0, 255};
 public:
-	uint8_t r, g, b, a;
-	FloodColor() : r{ 0 }, g{ 0 }, b{ 0 }, a{ 255 } {};
-	FloodColor(float r, float g, float b, float a = 1.f) { this->r = static_cast<int>(r * 255.f); this->g = static_cast<int>(g * 255.f); this->b = static_cast<int>(b * 255.f); this->a = static_cast<int>(a * 255.f);}
-	FloodColor(int r, int g, int b, int a){ this->r = r; this->g = g; this->b = b; this->a = a; }
-	constexpr unsigned int ToU32()const
+	FloodColor() {  }
+	FloodColor(float r, float g, float b, float a = 1.f) { rdata[0] = static_cast<int>(r * 255.f); rdata[1] = static_cast<int>(g * 255.f); rdata[2] = static_cast<int>(b * 255.f); rdata[3] = static_cast<int>(a * 255.f); }
+	FloodColor(int r, int g, int b, int a) { rdata[0] = r; rdata[1] = g; rdata[2] = b; rdata[3] = a; }
+	~FloodColor() {  }
+	constexpr uint8_t& r() { return rdata[0]; }
+	constexpr uint8_t& g() { return rdata[1]; }
+	constexpr uint8_t& b() { return rdata[2]; }
+	constexpr uint8_t& a() { return rdata[3]; }
+	constexpr unsigned int ToU32()
 	{
-		return ((BYTE(this->a) << 24) + (BYTE(this->r) << 16) + (BYTE(this->g) << 8) + BYTE(this->b));
+		return ((BYTE(this->a()) << 24) + (BYTE(this->r()) << 16) + (BYTE(this->g()) << 8) + BYTE(this->b()));
 	}
+	constexpr uint8_t* data() { return rdata; }
 };
 
 constexpr bool FindPoint(const FloodVector2& min, const FloodVector2& max, const FloodVector2& point)

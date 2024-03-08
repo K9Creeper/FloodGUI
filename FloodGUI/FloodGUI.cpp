@@ -92,13 +92,13 @@ int main()
 
 	std::cout << "Initalized Flood\n";
 
-	D3DCOLOR clear_col_dx = clearColor.ToU32();
 	bool b = false;
 	int ba = 1;
 
 	bool b2 = false;
 	int b2a = 1;
 	int i = -1;
+
 	while (running) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessage(&msg); if (msg.message == WM_QUIT) {CleanupDeviceD3D(); running = false; } }
 		if (!running)
@@ -153,16 +153,18 @@ int main()
 				// This is an example of using the Background Draw List
 				FloodGui::IntSlider("Background Alphabet Type", &b2a, 1, 2);
 				if (b2a == 1)
-					FloodGui::Context.GetBackgroundDrawList()->AddText("ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890", FloodVector2(200, 550), FloodColor(255, 255, 0, 255), 15, 9);
+					FloodGui::Context.GetBackgroundDrawList()->AddText("ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890", FloodVector2(200, 550), FloodColor(255, 60, 255, 255), 15, 9);
 				else
-					FloodGui::Context.GetBackgroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(200, 550), FloodColor(255, 255, 0, 255), 15, 9);
+					FloodGui::Context.GetBackgroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(200, 550), FloodColor(255, 60, 255, 255), 15, 9);
 			}
 			
 			if (FloodGui::IntSlider("Slider", &i, -10, 10))
 				std::cout << "Slider changed value to: " << i << "\n";
-			
-			FloodGui::EndWindow();
 
+			FloodGui::Color4Slider("Background RGBA", clearColor.data());
+			FloodGui::Color3Slider("Background RGB", clearColor.data());
+
+			FloodGui::EndWindow();
 		}
 		FloodGui::EndFrame();
 
@@ -171,7 +173,7 @@ int main()
 		d3ddev->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 		
 		
-		d3ddev->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0);
+		d3ddev->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clearColor.ToU32(), 1.0f, 0);
 		
 		if (d3ddev->BeginScene() >= 0)
 		{

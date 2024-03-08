@@ -37,6 +37,8 @@ namespace FloodGui {
 	extern inline bool Button(const char* id);
 	extern inline bool Checkbox(const char* id, bool* val);
 	extern inline bool IntSlider(const char* id, int* val, int min, int max);
+	extern inline bool Color4Slider(const char* id, uint8_t* col4);
+	extern inline bool Color3Slider(const char* id, uint8_t* col3);
 	//extern inline bool TextInput(const char* id, const char* text/* Make sure this has allocated atleast 64 chars*/, const char* buffer);
 	extern inline bool Hotkey(const char* id, uint16_t key, bool global = true);
 }
