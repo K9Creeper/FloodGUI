@@ -138,6 +138,8 @@ private:
 	FloodDrawList DrawList;
 
 	bool isActive = false;
+	bool isDraggingActive = false;
+	bool isResizingActive = false;
 
 	uint16_t zIndex = 0; // 0 - top layer, 1,2,3.. are behind this index
 
@@ -174,6 +176,9 @@ public:
 	FloodVector2 GetBoundingContentMax() { return position + size + FloodVector2{ 0, titlebar_size.y }; }
 
 	bool WindowIsActive()const { return isActive; }
+	bool& WindowDraggingActive() { return isDraggingActive; }
+	bool& WindowResizingActive() { return isResizingActive; }
+
 	void SetZIndex(uint16_t zIndex){ this->zIndex = zIndex; }
 	uint16_t GetZIndex() { return zIndex; }
 	void SetWindowActive(bool s=true) { this->isActive = s; if(s)SetZIndex(0);  }

@@ -54,7 +54,8 @@ struct FloodHash {
 std::vector<std::pair<const char*, FloodWindow*>>SortWindows() {
     std::vector<std::pair<const char*, FloodWindow*>>out;
     out.reserve(FloodGui::Context.Windows.size());
-    for (const auto& [name, window] : FloodGui::Context.Windows) { out.push_back({ name, window }); }
+    for (const auto& [name, window] : FloodGui::Context.Windows) {  out.push_back({ name, window }); }
+    
     bool sort = true;
     while (sort)
     {
@@ -63,8 +64,8 @@ std::vector<std::pair<const char*, FloodWindow*>>SortWindows() {
         sort = false;
         for (int16_t i = out.size() - 1; i > 0; i--)
         {
-            const std::pair<const char*, FloodWindow*>& pair1 = out[i];
-            const std::pair<const char*, FloodWindow*>& pair2 = out[i - 1];
+            const std::pair<const char*, FloodWindow*> pair1 = out[i];
+            const std::pair<const char*, FloodWindow*> pair2 = out[i - 1];
 
             const uint16_t& z1 = pair1.second->GetZIndex();
             const uint16_t& z2 = pair2.second->GetZIndex();
@@ -384,11 +385,9 @@ void FloodGui::Render()
     FloodGui::Context.FrameStage = FloodRenderStage_FrameRenderStart;
     FloodDrawData* drawData = FloodGui::Context.DrawData;
     // Organize Global Draw Data
-    if (FloodGui::Context.DrawData->Foreground)
-        drawData->DrawLists.push_back(FloodGui::Context.DrawData->Foreground);
-    for (const auto& [name, window] : SortWindows()) { drawData->DrawLists.insert(drawData->DrawLists.begin(), (window->GetDrawList())); }
-    if (FloodGui::Context.DrawData->Background)
-        drawData->DrawLists.insert(drawData->DrawLists.begin(), FloodGui::Context.DrawData->Background);
+    drawData->DrawLists.push_back(FloodGui::Context.DrawData->Foreground);
+    for (const auto& [name, window] : SortWindows()) { drawData->DrawLists.insert(drawData->DrawLists.end()-1, window->GetDrawList()); }
+    drawData->DrawLists.insert(drawData->DrawLists.begin(), FloodGui::Context.DrawData->Background);
 }
 
 void FloodGui::BeginWindow(const char* windowName)
@@ -407,24 +406,32 @@ void FloodGui::BeginWindow(const char* windowName)
         window = context.Windows[windowName];
     context.ActiveDrawingWindow = window;
 
-    FloodDrawList* DrawList = window->GetDrawList();  window->Clear();
+    FloodDrawList* DrawList = window->GetDrawList(); window->Clear();
     // Window Interaction
     {
+        const uint64_t hash = FloodHash(window, "").hash();
         FloodWindow* hovered = get_window_hovering();
-        static bool PrevMouseClick;
+        static std::unordered_map < uint64_t, bool> PrevMouseClick;
+        if (PrevMouseClick.find(hash) == PrevMouseClick.end())
+            PrevMouseClick[hash] = false;
+        bool& is_selected1 = window->WindowResizingActive();
+        static std::unordered_map<uint64_t, FloodVector2> relative_dst1{};
+        if (relative_dst1.find(hash) == relative_dst1.end())
+            relative_dst1[hash] = FloodVector2();
 
-        static bool is_selected1 = false;
-        static FloodVector2 relative_dst1;
+        bool onmouseUp = PrevMouseClick[hash] && !FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
+        bool onmouseDown = !PrevMouseClick[hash] && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
 
-        bool onmouseUp = PrevMouseClick && !FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
-        bool onmouseDown = !PrevMouseClick && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
+        if (window == hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+            FocusNewWindow(window);
+
         // Window Resizing
         {
-            if (window->WindowIsActive() && (window == hovered || is_selected1)&& FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])
+            if (window->WindowIsActive() && (window->WindowIsActive() || is_selected1) && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])
             {
                 if (FindPoint(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodGui::Context.IO.mouse_pos) || is_selected1) {
-                    const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - relative_dst1;
-                    if (relative_dst1.x != 0 && relative_dst1.y != 0)
+                    const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - relative_dst1[hash];
+                    if (relative_dst1[hash].x != 0 && relative_dst1[hash].y != 0)
                     {
                         is_selected1 = true;
                         // Here we calculate the new size of the window 
@@ -432,7 +439,7 @@ void FloodGui::BeginWindow(const char* windowName)
                         FloodVector2 new_size = (window->GetBoundingContentMax() - window->GetBoundingContentMin()) + dst;
                         // Lets have a minimum size for our window
                         // it will not behave nicely otherwise
-                        if (new_size.x > 600 && new_size.y > 600) {
+                        if (new_size.x > 500 && new_size.y > 500) {
                             window->ResizeWindow(new_size);
                         }
                         else {
@@ -442,47 +449,35 @@ void FloodGui::BeginWindow(const char* windowName)
                     else {
                         is_selected1 = false;
                     }
-                    relative_dst1 = FloodGui::Context.IO.mouse_pos;
+                    relative_dst1[hash] = FloodGui::Context.IO.mouse_pos;
                 }
             }
             if (onmouseUp)
             {
-                relative_dst1 = FloodVector2(0, 0);
+                relative_dst1[hash] = FloodVector2(0, 0);
                 is_selected1 = false;
-            }
-            if (window == hovered || is_selected1) {
-                if (FindPoint(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodGui::Context.IO.mouse_pos))
-                {
-                    ChangeCursor(IDC_SIZENWSE);
-                }
-                else {
-                    ChangeCursor(IDC_ARROW);
-                }
-            }
-            else {
-                ChangeCursor(IDC_ARROW);
             }
         }
 
         //if the user previously clicked in the title box and the mouse is still down
-        static bool is_selected2 = false; 
-        static FloodVector2 relative_dst2;
-        if (window == hovered && onmouseDown)
+        bool& is_selected2 = window->WindowDraggingActive();
+        static std::unordered_map<uint64_t, FloodVector2> relative_dst2;
+        if (relative_dst2.find(hash) == relative_dst2.end())
+            relative_dst2[hash] = FloodVector2();
+        if (window->WindowIsActive() && onmouseDown)
         {
             // Get relative distance to top left on first click
-            relative_dst2 = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
+            relative_dst2[hash] = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
         }
-        if ((is_selected2 == false && (window != hovered && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])) || onmouseUp)
+        if ((is_selected2 == false && (!window->WindowIsActive() && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])) || onmouseUp)
         {
-            relative_dst2.x = 1; // invalidate
+            relative_dst2[hash].x = 1; // invalidate
         }
-        if (relative_dst2.x <= 0 && (window == hovered || is_selected2) && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
-            // Window Focusing
-            FocusNewWindow(window);
+        if (relative_dst2[hash].x <= 0 && (window->WindowIsActive() || is_selected2) && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
             // Window Dragging
             if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos) || is_selected2) {
                 const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - FloodGui::Context.IO.pmouse_pos;
-                window->MoveWindow(relative_dst2 + dst);
+                window->MoveWindow(relative_dst2[hash] + dst);
                 is_selected2 = true;
             }
             else {
@@ -492,7 +487,8 @@ void FloodGui::BeginWindow(const char* windowName)
         }
         if (!FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos))
             is_selected2 = false;
-        PrevMouseClick = FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
+        
+        PrevMouseClick[hash] = FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
     }
     static const int font_size = 7;
     static const int spacing = 5;
