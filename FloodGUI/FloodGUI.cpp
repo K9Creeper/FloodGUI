@@ -68,7 +68,7 @@ int main()
 	{
 		wc = { sizeof(wc), CS_CLASSDC, MainWindowProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"Flood Gui Example", nullptr };
 		RegisterClassExW(&wc);
-		hwnd = ::CreateWindowW(wc.lpszClassName, L"Flood Gui Example", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
+		hwnd = ::CreateWindowW(wc.lpszClassName, L"Flood Gui Example", WS_OVERLAPPEDWINDOW, 100, 100, 1080, 700, nullptr, nullptr, wc.hInstance, nullptr);
 
 		// Initialize Direct3D
 		if (!CreateDeviceD3D(hwnd))
@@ -118,6 +118,28 @@ int main()
 				{
 					std::cout << "Hello from Button\n";
 				}
+				if (FloodGui::Checkbox("Show Foreground Alphabet", &b))
+					std::cout << "Checkbox was pressed!\n";
+
+				if (b)
+				{
+					// This is an example of using the Foreground Draw List
+					FloodGui::IntSlider("Foreground Alphabet Type", &ba, 1, 2);
+					if (ba == 1)
+						FloodGui::Context.GetForegroundDrawList()->AddText("ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890", FloodVector2(50, 500), FloodColor(255, 0, 0, 255), 15, 9);
+					else
+						FloodGui::Context.GetForegroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 0, 0, 255), 15, 9);
+				}
+
+				if (FloodGui::IntSlider("Slider", &i, -10, 10))
+					std::cout << "Slider changed value to: " << i << "\n";
+
+				FloodGui::Color4Slider("Background RGBA", clearColor.data());
+			}
+			FloodGui::EndWindow();
+
+			FloodGui::BeginWindow("Window 2");
+			{
 
 				if (FloodGui::Button("Switch Color Blind Modes")) {
 					// This tracks the state of color
@@ -135,20 +157,6 @@ int main()
 					}
 				}
 
-				if (FloodGui::Checkbox("Show Foreground Alphabet", &b))
-					std::cout << "Checkbox was pressed!\n";
-
-				if (b)
-				{
-					// This is an example of using the Foreground Draw List
-					FloodGui::IntSlider("Foreground Alphabet Type", &ba, 1, 2);
-					if (ba == 1)
-						FloodGui::Context.GetForegroundDrawList()->AddText("ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890", FloodVector2(50, 500), FloodColor(255, 0, 0, 255), 15, 9);
-					else
-						FloodGui::Context.GetForegroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(50, 500), FloodColor(255, 0, 0, 255), 15, 9);
-				}
-
-
 				if (FloodGui::Checkbox("Show Background Alphabet", &b2))
 					std::cout << "Checkbox was pressed!\n";
 
@@ -162,20 +170,10 @@ int main()
 						FloodGui::Context.GetBackgroundDrawList()->AddText("abcdefghijklmnopqrstuvwxyz 1234567890", FloodVector2(200, 550), FloodColor(255, 60, 255, 255), 15, 9);
 				}
 
-				if (FloodGui::IntSlider("Slider", &i, -10, 10))
-					std::cout << "Slider changed value to: " << i << "\n";
-
-				FloodGui::Color4Slider("Background RGBA", clearColor.data());
 				FloodGui::Color3Slider("Background RGB", clearColor.data());
-			}
-			FloodGui::EndWindow();
 
-			FloodGui::BeginWindow("Window 2");
-			{
-				if (FloodGui::Button("Say Hello"))
-				{
-					std::cout << "Hello from Button\n";
-				}
+				if (FloodGui::Hotkey("Hotkey", FloodGuiKey_E))
+					std::cout << "Hotkey is being pressed\n";
 			}
 			FloodGui::EndWindow();
 		}

@@ -80,6 +80,18 @@ std::vector<std::pair<const char*, FloodWindow*>>SortWindows() {
     }
     return out;
 }
+std::vector<std::string> split(std::string s, std::string del = " ")
+{
+    int start, end = -1 * del.size();
+    std::vector<std::string>out{};
+    do {
+        start = end + del.size();
+        end = s.find(del, start);
+        out.push_back(s.substr(start, end - start));
+    } while (end != -1);
+    return out;
+}
+
 FloodWindow* get_window_hovering()
 {
     FloodWindow* interest = nullptr;
@@ -99,6 +111,34 @@ FloodWindow* get_window_hovering()
     }
     // return a window of interest--if there is one
     return interest;
+}
+static const char* const GKeyNames[] =
+{
+    "Tab", "LeftArrow", "RightArrow", "UpArrow", "DownArrow", "PageUp", "PageDown",
+    "Home", "End", "Insert", "Delete", "Backspace", "Space", "Enter", "Escape",
+    "LeftCtrl", "LeftShift", "LeftAlt", "LeftSuper", "RightCtrl", "RightShift", "RightAlt", "RightSuper", "Menu",
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H",
+    "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+    "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
+    "Apostrophe", "Comma", "Minus", "Period", "Slash", "Semicolon", "Equal", "LeftBracket",
+    "Backslash", "RightBracket", "GraveAccent", "CapsLock", "ScrollLock", "NumLock", "PrintScreen",
+    "Pause", "Keypad0", "Keypad1", "Keypad2", "Keypad3", "Keypad4", "Keypad5", "Keypad6",
+    "Keypad7", "Keypad8", "Keypad9", "KeypadDecimal", "KeypadDivide", "KeypadMultiply",
+    "KeypadSubtract", "KeypadAdd", "KeypadEnter", "KeypadEqual",
+    "GamepadStart", "GamepadBack",
+    "GamepadFaceLeft", "GamepadFaceRight", "GamepadFaceUp", "GamepadFaceDown",
+    "GamepadDpadLeft", "GamepadDpadRight", "GamepadDpadUp", "GamepadDpadDown",
+    "GamepadL1", "GamepadR1", "GamepadL2", "GamepadR2", "GamepadL3", "GamepadR3",
+    "GamepadLStickLeft", "GamepadLStickRight", "GamepadLStickUp", "GamepadLStickDown",
+    "GamepadRStickLeft", "GamepadRStickRight", "GamepadRStickUp", "GamepadRStickDown",
+    "MouseLeft", "MouseRight", "MouseMiddle", "MouseX1", "MouseX2", "MouseWheelX", "MouseWheelY",
+    "ModCtrl", "ModShift", "ModAlt", "ModSuper"
+};
+const char* GetKeyName(FloodKey key)
+{
+    if (key == FloodGuiKey_None)
+        return "None";
+    return GKeyNames[key - 512];
 }
 void FocusNewWindow(FloodWindow* target)
 {
@@ -392,7 +432,7 @@ void FloodGui::Render()
 
 void FloodGui::BeginWindow(const char* windowName)
 {
-    FloodContext& context = FloodGui::Context;
+    static FloodContext& context = FloodGui::Context;
     bool windowExists = context.Windows.find(windowName) != context.Windows.end();
     FloodWindow* window = nullptr;
     // Create a new window if it doesnt exist
@@ -414,10 +454,6 @@ void FloodGui::BeginWindow(const char* windowName)
         static std::unordered_map < uint64_t, bool> PrevMouseClick;
         if (PrevMouseClick.find(hash) == PrevMouseClick.end())
             PrevMouseClick[hash] = false;
-        bool& is_selected1 = window->WindowResizingActive();
-        static std::unordered_map<uint64_t, FloodVector2> relative_dst1{};
-        if (relative_dst1.find(hash) == relative_dst1.end())
-            relative_dst1[hash] = FloodVector2();
 
         bool onmouseUp = PrevMouseClick[hash] && !FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
         bool onmouseDown = !PrevMouseClick[hash] && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
@@ -427,6 +463,11 @@ void FloodGui::BeginWindow(const char* windowName)
 
         // Window Resizing
         {
+        bool& is_selected1 = window->WindowResizingActive();
+        static std::unordered_map<uint64_t, FloodVector2> relative_dst1{};
+        if (relative_dst1.find(hash) == relative_dst1.end())
+            relative_dst1[hash] = FloodVector2();
+        
             if (window->WindowIsActive() && (window->WindowIsActive() || is_selected1) && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])
             {
                 if (FindPoint(window->GetBoundingContentMax() - 20.f, window->GetBoundingContentMax(), FloodGui::Context.IO.mouse_pos) || is_selected1) {
@@ -459,35 +500,38 @@ void FloodGui::BeginWindow(const char* windowName)
             }
         }
 
-        //if the user previously clicked in the title box and the mouse is still down
-        bool& is_selected2 = window->WindowDraggingActive();
-        static std::unordered_map<uint64_t, FloodVector2> relative_dst2;
-        if (relative_dst2.find(hash) == relative_dst2.end())
-            relative_dst2[hash] = FloodVector2();
-        if (window->WindowIsActive() && onmouseDown)
+        // Window draggings
         {
-            // Get relative distance to top left on first click
-            relative_dst2[hash] = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
-        }
-        if ((is_selected2 == false && (!window->WindowIsActive() && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])) || onmouseUp)
-        {
-            relative_dst2[hash].x = 1; // invalidate
-        }
-        if (relative_dst2[hash].x <= 0 && (window->WindowIsActive() || is_selected2) && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
-            // Window Dragging
-            if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos) || is_selected2) {
-                const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - FloodGui::Context.IO.pmouse_pos;
-                window->MoveWindow(relative_dst2[hash] + dst);
-                is_selected2 = true;
+            //if the user previously clicked in the title box and the mouse is still down
+            bool& is_selected2 = window->WindowDraggingActive();
+            static std::unordered_map<uint64_t, FloodVector2> relative_dst2;
+            if (relative_dst2.find(hash) == relative_dst2.end())
+                relative_dst2[hash] = FloodVector2();
+            if (window->WindowIsActive() && onmouseDown)
+            {
+                // Get relative distance to top left on first click
+                relative_dst2[hash] = window->GetFullBoundingMin() - FloodGui::Context.IO.mouse_pos;
             }
-            else {
-                //set select to false
+            if ((is_selected2 == false && (!window->WindowIsActive() && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse])) || onmouseUp)
+            {
+                relative_dst2[hash].x = 1; // invalidate
+            }
+            if (relative_dst2[hash].x <= 0 && (window->WindowIsActive() || is_selected2) && FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse]) {
+                // Window Dragging
+                if (FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos) || is_selected2) {
+                    const FloodVector2& dst = FloodGui::Context.IO.mouse_pos - FloodGui::Context.IO.pmouse_pos;
+                    window->MoveWindow(relative_dst2[hash] + dst);
+                    is_selected2 = true;
+                }
+                else {
+                    //set select to false
+                    is_selected2 = false;
+                }
+            }
+            if (!FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos))
                 is_selected2 = false;
-            }
         }
-        if (!FindPoint(window->GetBoundingTitleMin(), window->GetBoundingTitleMax(), FloodGui::Context.IO.mouse_pos))
-            is_selected2 = false;
-        
+
         PrevMouseClick[hash] = FloodGui::Context.IO.MouseInput[FloodGuiButton_LeftMouse];
     }
     static const int font_size = 7;
@@ -506,12 +550,13 @@ void FloodGui::EndWindow() {
 }
 
 bool FloodGui::Button(const char* id) {
+    std::string sid = split(id, "##")[0];
     FloodWindow* win = Context.ActiveDrawingWindow;
-    const FloodVector2 coffset{ 15, 5 };
+    static const FloodVector2 coffset{ 15, 5 };
     FloodVector2 offset{ 15, 5 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
         offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
-    FloodVector2 textSize = CalcTextSize(id, 7, 5);
+    FloodVector2 textSize = CalcTextSize(sid.c_str(), 7, 5);
     FloodVector2 innerPadding = FloodVector2(textSize.x/5.f, textSize.y);
     FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
     FloodVector2 boxMax = boxMin + textSize + innerPadding;
@@ -522,7 +567,7 @@ bool FloodGui::Button(const char* id) {
         pass[hash] = true;
 
     win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering && pass[hash] ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
-    win->GetDrawList()->AddText(id, boxMin + FloodVector2(0, textSize.y) + innerPadding/3.f, Context.colors[FloodGuiCol_Text], 7, 5);
+    win->GetDrawList()->AddText(sid.c_str(), boxMin + FloodVector2(0, textSize.y) + innerPadding/3.f, Context.colors[FloodGuiCol_Text], 7, 5);
     win->content.push_back({ id, boxMax.y - boxMin.y });
     if (pass[hash] && Context.IO.MouseInput[FloodGuiButton_LeftMouse] && isHovering)
     {
@@ -538,12 +583,13 @@ bool FloodGui::Button(const char* id) {
 }
 
 bool FloodGui::Color4Slider(const char* id, uint8_t* col4) {
+    std::string sid = split(id, "##")[0];
     FloodWindow* win = Context.ActiveDrawingWindow;
-    const FloodVector2 coffset{ 15, 5 };
+    static const FloodVector2 coffset{ 15, 5 };
     FloodVector2 offset{ 15, 5 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
         offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
-    FloodVector2 text_size1 = CalcTextSize(id, 7, 5);
+    FloodVector2 text_size1 = CalcTextSize(sid.c_str(), 7, 5);
     const FloodVector2 text_padding = { 7 , text_size1.y / 2.5f };
     const float length = (win->GetBoundingContentMax().x - (win->GetBoundingContentMin() + offset).x - offset.x - text_size1.x - text_padding.x - (5.f*4)) / 4;
     float endX = 0;
@@ -632,18 +678,19 @@ bool FloodGui::Color4Slider(const char* id, uint8_t* col4) {
             ret = ret1;
         }
     }
-    win->GetDrawList()->AddText(id, (win->GetBoundingContentMin() + offset + FloodVector2(endX- win->GetBoundingContentMin().x, 25)) + FloodVector2(text_padding.x, -text_padding.y * 1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 5);
+    win->GetDrawList()->AddText(sid.c_str(), (win->GetBoundingContentMin() + offset + FloodVector2(endX- win->GetBoundingContentMin().x, 25)) + FloodVector2(text_padding.x, -text_padding.y * 1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 5);
     win->content.push_back({ id, 25.f});
     return ret;
 }
 
 bool FloodGui::Color3Slider(const char* id, uint8_t* col3) {
+    std::string sid = split(id, "##")[0];
     FloodWindow* win = Context.ActiveDrawingWindow;
-    const FloodVector2 coffset{ 15, 5 };
+    static const FloodVector2 coffset{ 15, 5 };
     FloodVector2 offset{ 15, 5 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
         offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
-    FloodVector2 text_size1 = CalcTextSize(id, 7, 5);
+    FloodVector2 text_size1 = CalcTextSize(sid.c_str(), 7, 5);
     const FloodVector2 text_padding = { 7 , text_size1.y / 2.5f };
     const float length = (win->GetBoundingContentMax().x - (win->GetBoundingContentMin() + offset).x - offset.x - text_size1.x - text_padding.x - (5.f * 3)) / 3;
     float endX = 0;
@@ -732,19 +779,20 @@ bool FloodGui::Color3Slider(const char* id, uint8_t* col3) {
             ret = ret1;
         }
     }
-    win->GetDrawList()->AddText(id, (win->GetBoundingContentMin() + offset + FloodVector2(endX - win->GetBoundingContentMin().x, 25)) + FloodVector2(text_padding.x, -text_padding.y * 1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 5);
+    win->GetDrawList()->AddText(sid.c_str(), (win->GetBoundingContentMin() + offset + FloodVector2(endX - win->GetBoundingContentMin().x, 25)) + FloodVector2(text_padding.x, -text_padding.y * 1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 5);
 
     win->content.push_back({ id, 25.f });
     return ret;
 }
 
 bool FloodGui::Checkbox(const char* id, bool* val) {
+    std::string sid = split(id, "##")[0];
     FloodWindow* win = Context.ActiveDrawingWindow;
-    const FloodVector2 coffset{ 15, 5 };
+    static const FloodVector2 coffset{ 15, 5 };
     FloodVector2 offset{ 15, 5 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
         offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
-    FloodVector2 textSize = CalcTextSize(id, 7, 5);
+    FloodVector2 textSize = CalcTextSize(sid.c_str(), 7, 5);
 
     FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
     FloodVector2 boxMax = boxMin + FloodVector2(20, 20);
@@ -756,7 +804,7 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
     win->GetDrawList()->AddRectFilled(boxMin, boxMax, isHovering && pass ? Context.colors[FloodGuiCol_ButtonHovered] : Context.colors[FloodGuiCol_Button]);
     if (isToggled)
         win->GetDrawList()->AddRectFilled(boxMin+ (FloodVector2(20, 20)/5.f), boxMax-(FloodVector2(20, 20) / 5.f), Context.colors[FloodGuiCol_CheckboxActivated]);
-    win->GetDrawList()->AddText(id, boxMax + FloodVector2{7, -textSize.y/2.f}- (FloodVector2(20, 20) / 7.5f), Context.colors[FloodGuiCol_Text],7, 5);
+    win->GetDrawList()->AddText(sid.c_str(), boxMax + FloodVector2{7, -textSize.y/2.f}- (FloodVector2(20, 20) / 7.5f), Context.colors[FloodGuiCol_Text],7, 5);
     
     win->content.push_back({ id, boxMax.y - boxMin.y });
 
@@ -781,15 +829,16 @@ bool FloodGui::Checkbox(const char* id, bool* val) {
 }
 
 bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
+    std::string sid = split(id, "##")[0];
     FloodWindow* win = Context.ActiveDrawingWindow;
-    const FloodVector2 coffset{ 15, 5 };
+    static const FloodVector2 coffset{ 15, 5 };
     FloodVector2 offset{ 15, 5 };
     for (int i = 0; i < win->CurrentContentCount(); i++)
         offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
     
     // Here we calc the outer container for the slider
     FloodVector2 minOuter = win->GetBoundingContentMin() + offset;
-     FloodVector2 text_size1 = CalcTextSize(id, 7, 5);
+     FloodVector2 text_size1 = CalcTextSize(sid.c_str(), 7, 5);
      const FloodVector2 text_padding = { 7 , text_size1 .y/2.5f};
     const float length = win->GetBoundingContentMax().x - minOuter.x - offset.x - text_size1.x - text_padding.x;
     FloodVector2 maxOuter = minOuter + FloodVector2(length, 25);
@@ -820,7 +869,7 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
     // Here we draw everything
     win->GetDrawList()->AddRectFilled(minOuter, maxOuter, Context.colors[FloodGuiCol_SliderBkg]);
     win->GetDrawList()->AddRectFilled(minInner, maxInner, (isHoveringInner || pass[hash])? Context.colors[FloodGuiCol_SliderSliderHover] : Context.colors[FloodGuiCol_SliderSlider]);
-    win->GetDrawList()->AddText(id, maxOuter + FloodVector2(text_padding.x, -text_padding.y*1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 5);
+    win->GetDrawList()->AddText(sid.c_str(), maxOuter + FloodVector2(text_padding.x, -text_padding.y*1.6f), FloodGui::Context.colors[FloodGuiCol_Text], 7, 5);
         // This is where we draw the text
         FloodVector2 text_size = CalcTextSize(sValue.c_str(), 7, 3);
         const FloodVector2& text_pos = (minOuter + FloodVector2((length / 2.f) - (text_size.x / 2.f), innerSize.y- innerSize.y/2.f + text_size.y/2.f));
@@ -878,12 +927,26 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
 
 bool FloodGui::Hotkey(const char* id, uint16_t key, bool global)
 {
+    FloodWindow* win = Context.ActiveDrawingWindow;
+    static std::unordered_map<uint64_t, FloodKey> keys{};
+    const uint64_t hash = FloodHash(win, id).hash();
+    if (keys.find(hash) == keys.end())
+        keys[hash] = (FloodKey)key;
     // Todo:
     // Drawing
-
-    // Functionality
-    //
-    
+    if (FloodGui::Button((keys[hash] == FloodGuiKey_None ? ("<...>##"+ std::string(id)).c_str() : ("  " + std::string(GetKeyName((FloodKey)keys[hash])) + "##" + std::string(id) + "  ").c_str())))
+    {
+        // Functionality
+        //
+        keys[hash] = FloodGuiKey_None;
+    }
+    if (keys[hash] == FloodGuiKey_None)
+    {
+        for(const auto& k : FloodGui::Context.IO.KeyboardInputs)
+            if (k.second.raw_down) { keys[hash] = (FloodKey)k.first; break; }
+    }
+    else if(FloodGui::Context.IO.KeyboardInputs[keys[hash]].raw_down)
+        return true;
     return false;
 }
 
