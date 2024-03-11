@@ -59,10 +59,11 @@ void FloodIO::AddKeyEventDown(uint16_t key, bool down)
         return;
     FloodKey fKey = FloodGuiWinVirtualKeyToFloodGuiKey(key);
     if (KeyboardInputs.find(fKey) == KeyboardInputs.end())
-        KeyboardInputs[fKey] = FloodKeyInput{ key, down };
-    else {
+        KeyboardInputs[fKey] = FloodKeyInput{ key, down , std::chrono::system_clock::now().time_since_epoch().count()};
+    else {        
         KeyboardInputs[fKey].real_key = key;
         KeyboardInputs[fKey].raw_down = down;
+        KeyboardInputs[fKey].tClick = std::chrono::system_clock::now().time_since_epoch().count();
     }
  }
 

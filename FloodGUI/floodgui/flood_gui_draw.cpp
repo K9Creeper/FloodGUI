@@ -928,25 +928,32 @@ bool FloodGui::IntSlider(const char* id, int* val, int min, int max) {
 bool FloodGui::Hotkey(const char* id, uint16_t key, bool global)
 {
     FloodWindow* win = Context.ActiveDrawingWindow;
-    static std::unordered_map<uint64_t, FloodKey> keys{};
+    struct custom {
+        FloodKey k;
+        long long tClick{};
+    };
+    static std::unordered_map<uint64_t, custom> keys{};
     const uint64_t hash = FloodHash(win, id).hash();
     if (keys.find(hash) == keys.end())
-        keys[hash] = (FloodKey)key;
+        keys[hash].k = (FloodKey)key;
     // Todo:
     // Drawing
-    if (FloodGui::Button((keys[hash] == FloodGuiKey_None ? ("<...>##"+ std::string(id)).c_str() : ("  " + std::string(GetKeyName((FloodKey)keys[hash])) + "##" + std::string(id) + "  ").c_str())))
+    if (FloodGui::Button((keys[hash].k == FloodGuiKey_None ? ("<...>##"+ std::string(id)).c_str() : (" " + std::string(GetKeyName((FloodKey)keys[hash].k)) + "##" + std::string(id)).c_str())))
     {
         // Functionality
         //
-        keys[hash] = FloodGuiKey_None;
+        
+        keys[hash].k = FloodGuiKey_None;
     }
-    if (keys[hash] == FloodGuiKey_None)
+    if (keys[hash].k == FloodGuiKey_None)
     {
         for(const auto& k : FloodGui::Context.IO.KeyboardInputs)
-            if (k.second.raw_down) { keys[hash] = (FloodKey)k.first; break; }
+            if (k.second.raw_down) { keys[hash].k = (FloodKey)k.first;         keys[hash].tClick = FloodGui::Context.IO.KeyboardInputs[keys[hash].k].tClick + 75; /* Add another 75ms delay after the press to intalize*/break; }
     }
-    else if(FloodGui::Context.IO.KeyboardInputs[keys[hash]].raw_down)
+    else if (FloodGui::Context.IO.KeyboardInputs[keys[hash].k].raw_down && FloodGui::Context.IO.KeyboardInputs[keys[hash].k].tClick > keys[hash].tClick) {
+        keys[hash].tClick = FloodGui::Context.IO.KeyboardInputs[keys[hash].k].tClick;
         return true;
+    }
     return false;
 }
 
@@ -1669,6 +1676,30 @@ void FloodDrawList::AllocChar(char text, const FloodVector2& position, FloodColo
     {
         FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
         AddLine(middle, middle + FloodVector2(width, 0), col, 1);
+        break;
+    }
+    case '.':
+    {
+        FloodVector2 vmiddle = FloodVector2(position) + FloodVector2(width / 2.f, 0);
+        AddLine(vmiddle, vmiddle + FloodVector2(0, -1.5f), col, 1.5f);
+        break;
+    }
+    case '<':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(width, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(0, -height / 2.f);
+        FloodVector2 bottom = FloodVector2(position) + FloodVector2(width, 0);
+        AddLine(top, middle, col);
+        AddLine(middle, bottom, col);
+        break;
+    }
+    case '>':
+    {
+        FloodVector2 top = FloodVector2(position) + FloodVector2(0, -height);
+        FloodVector2 middle = FloodVector2(position) + FloodVector2(width, -height / 2.f);
+        FloodVector2 bottom = FloodVector2(position) + FloodVector2(0, 0);
+        AddLine(top, middle, col);
+        AddLine(middle, bottom, col);
         break;
     }
     }

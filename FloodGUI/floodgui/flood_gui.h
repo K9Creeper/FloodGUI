@@ -115,6 +115,7 @@ enum FloodMouseButton : uint16_t {
 struct FloodKeyInput {
     uint16_t real_key = -1;
     bool raw_down = false; // This will be if it is down
+    long long tClick{};
 };
 
 struct FloodGuiD3D9Data;
