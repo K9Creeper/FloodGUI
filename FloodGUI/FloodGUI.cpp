@@ -1,6 +1,5 @@
-// THIS FILE IS ONLY USED FOR TESTING...
-// THIS FILE IS NOT APART OF FloodGUI
-// Flood GUI IS LOCATED IN THE FloodGUI FOLDER
+// THIS FILE SHOWS THE USAGE OF FLOODGUI
+// 
 #include <iostream>
 
 #include <Windows.h>
@@ -68,7 +67,7 @@ int main()
 	{
 		wc = { sizeof(wc), CS_CLASSDC, MainWindowProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"Flood Gui Example", nullptr };
 		RegisterClassExW(&wc);
-		hwnd = ::CreateWindowW(wc.lpszClassName, L"Flood Gui Example", WS_OVERLAPPEDWINDOW, 100, 100, 1080, 700, nullptr, nullptr, wc.hInstance, nullptr);
+		hwnd = ::CreateWindowW(wc.lpszClassName, L"Flood Gui Example", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 700, nullptr, nullptr, wc.hInstance, nullptr);
 
 		// Initialize Direct3D
 		if (!CreateDeviceD3D(hwnd))
