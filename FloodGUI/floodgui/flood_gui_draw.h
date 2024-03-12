@@ -31,7 +31,7 @@ namespace FloodGui {
 	//								//
 	// High Level Drawing Functions //
 	//								//
-	extern inline void BeginWindow(const char* windowName);
+	extern inline void BeginWindow(const char* windowName, bool shouldDraw = true);
 	extern inline void EndWindow();
 
 	extern inline bool Button(const char* id);
@@ -161,6 +161,8 @@ public:
 	FloodVector2 position;
 	FloodVector2 size;
 	FloodVector2 titlebar_size;
+
+	bool shouldDraw = true;
 
 	FloodDrawList* GetDrawList() { return &DrawList; }
 

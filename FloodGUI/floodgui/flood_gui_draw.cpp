@@ -426,11 +426,11 @@ void FloodGui::Render()
     FloodDrawData* drawData = FloodGui::Context.DrawData;
     // Organize Global Draw Data
     drawData->DrawLists.push_back(FloodGui::Context.DrawData->Foreground);
-    for (const auto& [name, window] : SortWindows()) { drawData->DrawLists.insert(drawData->DrawLists.end()-1, window->GetDrawList()); }
+    for (const auto& [name, window] : SortWindows()) { if(window->shouldDraw)drawData->DrawLists.insert(drawData->DrawLists.end()-1, window->GetDrawList()); }
     drawData->DrawLists.insert(drawData->DrawLists.begin(), FloodGui::Context.DrawData->Background);
 }
 
-void FloodGui::BeginWindow(const char* windowName)
+void FloodGui::BeginWindow(const char* windowName, bool shouldDraw)
 {
     static FloodContext& context = FloodGui::Context;
     bool windowExists = context.Windows.find(windowName) != context.Windows.end();
@@ -445,7 +445,7 @@ void FloodGui::BeginWindow(const char* windowName)
     else
         window = context.Windows[windowName];
     context.ActiveDrawingWindow = window;
-
+    window->shouldDraw = shouldDraw;
     FloodDrawList* DrawList = window->GetDrawList(); window->Clear();
     // Window Interaction
     {
@@ -936,15 +936,31 @@ bool FloodGui::Hotkey(const char* id, uint16_t key, bool global)
     const uint64_t hash = FloodHash(win, id).hash();
     if (keys.find(hash) == keys.end())
         keys[hash].k = (FloodKey)key;
-    // Todo:
-    // Drawing
-    if (FloodGui::Button((keys[hash].k == FloodGuiKey_None ? ("<...>##"+ std::string(id)).c_str() : (" " + std::string(GetKeyName((FloodKey)keys[hash].k)) + "##" + std::string(id)).c_str())))
+
+    static const FloodVector2 coffset{ 15, 5 };
+    FloodVector2 offset{ 15, 5 };
+    for (int i = 0; i < win->CurrentContentCount(); i++)
+        offset = offset + FloodVector2{ 0, win->content[i].second + coffset.y };
+
+    FloodVector2 buttonMax;
+    std::string sid1 = (keys[hash].k == FloodGuiKey_None ? ("<...>##" + std::string(id)) : (" " + std::string(GetKeyName((FloodKey)keys[hash].k)) + "##" + std::string(id)));
     {
-        // Functionality
-        //
-        
+        std::string sid11 = split(sid1, "##")[0];
+        FloodVector2 textSize = CalcTextSize(sid11.c_str(), 7, 5);
+        FloodVector2 innerPadding = FloodVector2(textSize.x / 5.f, textSize.y);
+        FloodVector2 boxMin = win->GetBoundingContentMin() + offset;
+        buttonMax = boxMin + textSize + innerPadding;
+    }
+
+    std::string sid2 = split(id, "##")[0];
+    
+    FloodVector2 textSize = CalcTextSize(sid2.c_str(), 7, 5);
+    if (FloodGui::Button(sid1.c_str()))
+    {
         keys[hash].k = FloodGuiKey_None;
     }
+
+    win->GetDrawList()->AddText(sid2.c_str(), buttonMax + FloodVector2{ 15, -textSize.y / 2.f } - ((buttonMax- (win->GetBoundingContentMin() + offset))/ 7.5f), Context.colors[FloodGuiCol_Text], 7, 5);
     if (keys[hash].k == FloodGuiKey_None)
     {
         for(const auto& k : FloodGui::Context.IO.KeyboardInputs)

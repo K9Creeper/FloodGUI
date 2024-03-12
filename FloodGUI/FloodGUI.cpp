@@ -98,6 +98,8 @@ int main()
 	int b2a = 1;
 	int i = -1;
 
+	bool hotkeyGlobal = true;
+
 	while (running) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessage(&msg); if (msg.message == WM_QUIT) {CleanupDeviceD3D(); running = false; } }
 		if (!running)
@@ -137,7 +139,7 @@ int main()
 			}
 			FloodGui::EndWindow();
 
-			FloodGui::BeginWindow("Window 2");
+			FloodGui::BeginWindow("Window 2", hotkeyGlobal);
 			{
 
 				if (FloodGui::Button("Switch Color Blind Modes")) {
@@ -171,8 +173,9 @@ int main()
 
 				FloodGui::Color3Slider("Background RGB", clearColor.data());
 
-				if (FloodGui::Hotkey("Hotkey", FloodGuiKey_E))
-					std::cout << "Hotkey is being pressed\n";
+				if (FloodGui::Hotkey("Show or Hide Window", FloodGuiKey_E)) {
+					hotkeyGlobal = !hotkeyGlobal;
+				}
 			}
 			FloodGui::EndWindow();
 		}
