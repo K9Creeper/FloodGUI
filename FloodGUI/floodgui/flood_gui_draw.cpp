@@ -89,6 +89,8 @@ std::vector<std::string> split(std::string s, std::string del = " ")
         end = s.find(del, start);
         out.push_back(s.substr(start, end - start));
     } while (end != -1);
+    if (!out.size())
+        return {""};
     return out;
 }
 
@@ -405,7 +407,7 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
 //                    //
 void FloodGui::NewFrame() {
     FloodGui::Context.FrameStage = FloodRenderStage_FrameStart;
-
+    ChangeCursor(IDC_ARROW);
     // Make sure we clear the global draw list
     //
     if(FloodGui::Context.DrawData->Foreground)
@@ -966,7 +968,7 @@ bool FloodGui::Hotkey(const char* id, uint16_t key, bool global)
         for(const auto& k : FloodGui::Context.IO.KeyboardInputs)
             if (k.second.raw_down) { keys[hash].k = (FloodKey)k.first;         keys[hash].tClick = FloodGui::Context.IO.KeyboardInputs[keys[hash].k].tClick + 75; /* Add another 75ms delay after the press to intalize*/break; }
     }
-    else if (FloodGui::Context.IO.KeyboardInputs[keys[hash].k].raw_down && FloodGui::Context.IO.KeyboardInputs[keys[hash].k].tClick > keys[hash].tClick) {
+    else if (FloodGui::Context.IO.KeyboardInputs[keys[hash].k].raw_down && FloodGui::Context.IO.KeyboardInputs[keys[hash].k].tClick > keys[hash].tClick && (global || (!global && win->shouldDraw && win->WindowIsActive()))) {
         keys[hash].tClick = FloodGui::Context.IO.KeyboardInputs[keys[hash].k].tClick;
         return true;
     }

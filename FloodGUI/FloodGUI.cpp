@@ -99,7 +99,7 @@ int main()
 	int i = -1;
 
 	bool hotkeyGlobal = true;
-
+	
 	while (running) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessage(&msg); if (msg.message == WM_QUIT) {CleanupDeviceD3D(); running = false; } }
 		if (!running)
@@ -175,6 +175,10 @@ int main()
 
 				if (FloodGui::Hotkey("Show or Hide Window", FloodGuiKey_E)) {
 					hotkeyGlobal = !hotkeyGlobal;
+				}
+				if (FloodGui::Hotkey("Local Hotkey", FloodGuiKey_C, false))
+				{
+					std::cout << "Local Hotkey Pressed\n";
 				}
 			}
 			FloodGui::EndWindow();
