@@ -106,7 +106,7 @@ FloodWindow* get_window_hovering()
         {
             // Now if a other window of interest is there but it has a higher z-index...
             // meaning it is behind our current window of interest then the current window is not our only window of interest
-            if (!interest || window->GetZIndex() < interest->GetZIndex()) {
+            if ((!interest || window->GetZIndex() < interest->GetZIndex()) && window->shouldDraw) {
                 interest = window;
             }
         }
