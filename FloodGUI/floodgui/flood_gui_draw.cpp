@@ -378,6 +378,10 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
             const FloodDrawMaterial& material = cmd_list->Elements[i];
             // This is to clip the drawings to inside the window
             
+            // Why was the time??
+            if(material.texture)
+                backend_data->pd3dDevice->SetTexture(0, material.texture);
+
             backend_data->pd3dDevice->SetScissorRect(&r);
             // This is where we draw our vertexs and points
             backend_data->pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vtx_offset + global_vtx_offset, 0, (UINT)cmd_list->VertexBuffer.size(), idx_offset + global_idx_offset, material.index_count / 3);
@@ -983,10 +987,10 @@ bool FloodGui::Hotkey(const char* id, uint16_t key, bool global)
 //                  //
 //  Flood Draw List //
 //                  //
-void FloodDrawList::AddRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col)
+void FloodDrawList::AddRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col, LPDIRECT3DTEXTURE9 texture = nullptr)
 {
     static const int index_count = 6, vertex_count = 4;
-    Elements.push_back(FloodDrawMaterial{ { min, {max.x,min.y}, max, { min.x, max.y } },  col, 0.f, index_count, vertex_count });
+    Elements.push_back(FloodDrawMaterial{ { min, {max.x,min.y}, max, { min.x, max.y } },  col, 0.f, index_count, vertex_count, texture });
     ReserveGeo(index_count, vertex_count);
     AllocRectFilled(min, max, col);
 }
@@ -1018,9 +1022,9 @@ void FloodDrawList::AllocRectFilled(const FloodVector2& min, const FloodVector2&
     VertexCurrentIdx += 4;
     IndexWrite += 6;
 }
-void FloodDrawList::AddTriangleFilled(const FloodVector2& a, const FloodVector2& b, const FloodVector2& c, FloodColor col) {
+void FloodDrawList::AddTriangleFilled(const FloodVector2& a, const FloodVector2& b, const FloodVector2& c, FloodColor col, LPDIRECT3DTEXTURE9 texture = nullptr) {
     static const int index_count = 4, vertex_count = 3;
-    Elements.push_back(FloodDrawMaterial{ {a,b,c},  col, 0.f, index_count, vertex_count });
+    Elements.push_back(FloodDrawMaterial{ {a,b,c},  col, 0.f, index_count, vertex_count, texture });
     ReserveGeo(index_count, vertex_count);
     AllocTriFilled(a, b, c, col);
 }

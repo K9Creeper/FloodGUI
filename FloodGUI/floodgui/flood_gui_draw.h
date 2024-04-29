@@ -52,6 +52,9 @@ struct FloodDrawMaterial {
 
 	int index_count; 
 	int vertex_count; // equal to points size
+
+	// Texture much?????
+	LPDIRECT3DTEXTURE9 texture;
 };
 
 typedef unsigned short FloodDrawIndex;
@@ -94,8 +97,8 @@ public:
 	void AddLine(const FloodVector2& p1, const FloodVector2& p2, FloodColor col, float thickness = 1.f);
 	void AddRect(const FloodVector2& min, const FloodVector2& max, FloodColor col, float thickness = 1.f);
 	void AddPolyLine(const std::vector<FloodVector2> points, FloodColor col, float thickness = 1.f);
-	void AddRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col);
-	void AddTriangleFilled(const FloodVector2& a, const FloodVector2& b, const FloodVector2& c, FloodColor col);
+	void AddRectFilled(const FloodVector2& min, const FloodVector2& max, FloodColor col, LPDIRECT3DTEXTURE9 texture = nullptr);
+	void AddTriangleFilled(const FloodVector2& a, const FloodVector2& b, const FloodVector2& c, FloodColor col, LPDIRECT3DTEXTURE9 texture = nullptr);
 
 	void AddText(const char* text, const FloodVector2& position, FloodColor col, float font_size, float spacing=16);
 

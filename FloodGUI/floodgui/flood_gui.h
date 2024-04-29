@@ -218,8 +218,6 @@ public:
     std::unordered_map<FloodGuiCol, FloodColor>colors{};
 };
 
-
-
 namespace FloodGui {
 	extern inline FloodContext Context{};
 

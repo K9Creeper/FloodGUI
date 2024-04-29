@@ -1,7 +1,0 @@
-1. Establish a working test base, in FloodGUI.cpp
-2. FloodGUI time
-	2a. Now create a window proc...
-	2b. Handle user input / get user input
-		2ba. Possible to get keyboard input, but focus on mouse input.
-	2c. Create drawing and stuff
-	2.d Now do extra shii

@@ -156,9 +156,6 @@
     <ClInclude Include="floodgui\flood_gui_math.h" />
     <ClInclude Include="floodgui\flood_gui_win.h" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="floodgui\planner.txt" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
