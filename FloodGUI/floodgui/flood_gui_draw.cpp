@@ -51,7 +51,7 @@ struct FloodHash {
 //                  //
 // HELPER FUNCTIONS //
 //                  //
-std::vector<std::pair<const char*, FloodWindow*>>SortWindows() {
+std::vector<std::pair<const char*, FloodWindow*>>SortWindows(int16_t vector_size) {
     std::vector<std::pair<const char*, FloodWindow*>>out;
     out.reserve(FloodGui::Context.Windows.size());
     for (const auto& [name, window] : FloodGui::Context.Windows) {  out.push_back({ name, window }); }
@@ -62,7 +62,7 @@ std::vector<std::pair<const char*, FloodWindow*>>SortWindows() {
         // Thanks S. Hendricks!
         // 
         sort = false;
-        for (int16_t i = out.size() - 1; i > 0; i--)
+        for (int16_t i = vector_size - 1; i > 0; i--)
         {
             const std::pair<const char*, FloodWindow*> pair1 = out[i];
             const std::pair<const char*, FloodWindow*> pair2 = out[i - 1];
@@ -433,7 +433,7 @@ void FloodGui::Render()
     FloodDrawData* drawData = FloodGui::Context.DrawData;
     // Organize Global Draw Data
     drawData->DrawLists.push_back(FloodGui::Context.DrawData->Foreground);
-    for (const auto& [name, window] : SortWindows()) { if(window->shouldDraw)drawData->DrawLists.insert(drawData->DrawLists.end()-1, window->GetDrawList()); }
+    for (const auto& [name, window] : SortWindows(FloodGui::Context.Windows.size())) { if(window->shouldDraw)drawData->DrawLists.insert(drawData->DrawLists.end()-1, window->GetDrawList()); }
     drawData->DrawLists.insert(drawData->DrawLists.begin(), FloodGui::Context.DrawData->Background);
 }
 
