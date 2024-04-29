@@ -187,6 +187,8 @@ enum FloodGuiCol : uint16_t {
 
 class FloodDrawData;
 struct FloodWindow;
+
+
 class FloodContext // Holds current infomation about instance
 {
 public:
@@ -195,8 +197,14 @@ public:
 	FloodDisplay	    Display;
 	FloodIO			    IO;
     FloodDrawData*      DrawData;
-    FloodRenderStage    FrameStage = FloodRenderStage_None;
-
+    struct FloodFrameData{
+        FloodRenderStage    FrameStage = FloodRenderStage_None;
+        unsigned long long  FrameCount = 0;
+        std::chrono::time_point<std::chrono::system_clock>  tFrameStart;
+        std::chrono::time_point<std::chrono::system_clock>  tFrameEnd;
+        std::chrono::duration<double> tElaspedFrame;
+        constexpr unsigned int CalculateFPS() { return (1000.f / (tElaspedFrame.count()*1000.f)); }
+    }FrameData;
     FloodWindow* FindWindowByName(const char* windowName) { return Windows.find(windowName) != Windows.end() ? Windows.find(windowName)->second : nullptr; }
     std::unordered_map<const char*, FloodWindow*>Windows{};
 

@@ -55,7 +55,7 @@ constexpr FloodKey FloodGuiWinVirtualKeyToFloodGuiKey(WPARAM wParam)
 
 void FloodIO::AddKeyEventDown(uint16_t key, bool down)
 {
-    if (FloodGui::Context.FrameStage != FloodRenderStage_FrameRenderEnd)
+    if (FloodGui::Context.FrameData.FrameStage != FloodRenderStage_FrameRenderEnd)
         return;
     FloodKey fKey = FloodGuiWinVirtualKeyToFloodGuiKey(key);
     if (KeyboardInputs.find(fKey) == KeyboardInputs.end())
@@ -74,7 +74,7 @@ void FloodIO::AddMouseMoveEvent(FloodVector2 mouse_pos)
     this->mouse_pos = mouse_pos;
 }
 void FloodIO::AddMouseClickEvent(FloodMouseButton button, bool button_down) {
-    if (FloodGui::Context.FrameStage != FloodRenderStage_FrameRenderEnd)
+    if (FloodGui::Context.FrameData.FrameStage != FloodRenderStage_FrameRenderEnd)
         return;
     this->MouseInput[button] = button_down;
 }

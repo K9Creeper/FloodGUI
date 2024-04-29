@@ -180,6 +180,11 @@ int main()
 				{
 					std::cout << "Local Hotkey Pressed\n";
 				}
+
+				if (FloodGui::Button("Print Current Frame Count"))
+					std::cout << FloodGui::Context.FrameData.FrameCount << "\n";
+				if (FloodGui::Button("Print FPS"))
+					std::cout << FloodGui::Context.FrameData.CalculateFPS() << "\n";
 			}
 			FloodGui::EndWindow();
 		}

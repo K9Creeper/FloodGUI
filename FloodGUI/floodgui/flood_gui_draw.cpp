@@ -226,7 +226,7 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
     FloodGuiD3D9Data* backend_data = FloodGui::Context.IO.BackendRendererData;
     if (!backend_data)
         return;
-    FloodGui::Context.FrameStage = FloodRenderStage_FrameRenderEnd;
+    FloodGui::Context.FrameData.FrameStage = FloodRenderStage_FrameRenderEnd;
     // not fun if minimized
     if (drawData->isMinimized()) {
         return;
@@ -399,6 +399,9 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
     // Restore the DX9 state
     d3d9_state_block->Apply();
     d3d9_state_block->Release();
+
+    FloodGui::Context.FrameData.tFrameEnd = std::chrono::system_clock::now();
+    FloodGui::Context.FrameData.tElaspedFrame = FloodGui::Context.FrameData.tFrameEnd - FloodGui::Context.FrameData.tFrameStart;
 }
 
 
@@ -406,7 +409,9 @@ void FloodGuiD3D9RenderDrawData(FloodDrawData* drawData) {
 // Namespace FloodGui //
 //                    //
 void FloodGui::NewFrame() {
-    FloodGui::Context.FrameStage = FloodRenderStage_FrameStart;
+    FloodGui::Context.FrameData.FrameStage = FloodRenderStage_FrameStart;
+    FloodGui::Context.FrameData.FrameCount++;
+    FloodGui::Context.FrameData.tFrameStart = std::chrono::system_clock::now();
     ChangeCursor(IDC_ARROW);
     // Make sure we clear the global draw list
     //
@@ -418,13 +423,13 @@ void FloodGui::NewFrame() {
 }
 
 void FloodGui::EndFrame() {
-    FloodGui::Context.FrameStage = FloodRenderStage_FrameEnd;
+    FloodGui::Context.FrameData.FrameStage = FloodRenderStage_FrameEnd;
 }
 
 void FloodGui::Render()
 {
     // Go over DrawList and validate things
-    FloodGui::Context.FrameStage = FloodRenderStage_FrameRenderStart;
+    FloodGui::Context.FrameData.FrameStage = FloodRenderStage_FrameRenderStart;
     FloodDrawData* drawData = FloodGui::Context.DrawData;
     // Organize Global Draw Data
     drawData->DrawLists.push_back(FloodGui::Context.DrawData->Foreground);
